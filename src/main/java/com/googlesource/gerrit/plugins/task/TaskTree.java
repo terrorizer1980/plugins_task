@@ -116,6 +116,7 @@ public class TaskTree {
       this.definition = definition;
       this.path.addAll(path);
       this.path.add(definition.name);
+      Preloader.preload(definition);
       new Properties(definition, parentProperties);
     }
 

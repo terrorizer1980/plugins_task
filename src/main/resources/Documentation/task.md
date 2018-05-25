@@ -146,6 +146,21 @@ Example:
     fail-hint = Blocked by a negative review score
 ```
 
+`preload-task`
+
+: This key defines a task whose attributes will be preloaded into the current
+task before the current task's attributes are set. Most attributes defined
+in the preload-task will be loaded first, and will be overridden by attributes
+from the current task if they redefined in the current task. Attributes
+which are lists (such as subtasks) or maps (such as properties), will be
+preloaded by the preload-task and then extended with the attributes from the
+current task.
+
+Example:
+```
+    preload-task = Base Jenkins Verification # has a pass criteria and hints
+```
+
 `subtask`
 
 : This key lists the name of a subtask of the current task. This key may be

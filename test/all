@@ -327,15 +327,15 @@
                "subTasks" : [
                   {
                      "applicable" : true,
+                     "exported" : {
+                        "subtask" : "Subtask Properties"
+                     },
                      "hasPass" : false,
                      "name" : "Subtask Properties",
                      "status" : "WAITING",
                      "subTasks" : [
                         {
                            "applicable" : true,
-                           "exported" : {
-                              "subtask" : "Subtask Properties Hints"
-                           },
                            "hasPass" : true,
                            "hint" : "Name(Subtask Properties Hints) root-property(root-value) first-property(first-value) second-property(first-value second-extra third-value) root(Root Properties)",
                            "name" : "Subtask Properties Hints",
@@ -352,6 +352,87 @@
                            "hasPass" : true,
                            "name" : "Subtask Properties Reset",
                            "status" : "PASS"
+                        }
+                     ]
+                  }
+               ]
+            },
+            {
+               "applicable" : true,
+               "hasPass" : true,
+               "name" : "Root Preload",
+               "status" : "FAIL",
+               "subTasks" : [
+                  {
+                     "applicable" : true,
+                     "hasPass" : true,
+                     "name" : "Subtask Preload",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "name" : "Subtask PASS",
+                           "status" : "PASS"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "name" : "Subtask Preload Preload",
+                           "status" : "PASS"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "hint" : "Task is ready",
+                           "name" : "Subtask Preload Hints PASS",
+                           "status" : "READY"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "hint" : "Task failed",
+                           "name" : "Subtask Preload Hints FAIL",
+                           "status" : "FAIL"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "name" : "Subtask Preload Override Pass",
+                           "status" : "READY"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "name" : "Subtask Preload Override Fail",
+                           "status" : "PASS"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "name" : "Subtask Preload Extend Subtasks",
+                           "status" : "READY",
+                           "subTasks" : [
+                              {
+                                 "applicable" : true,
+                                 "hasPass" : true,
+                                 "name" : "Subtask PASS",
+                                 "status" : "PASS"
+                              },
+                              {
+                                 "applicable" : true,
+                                 "hasPass" : true,
+                                 "name" : "Subtask APPLICABLE",
+                                 "status" : "PASS"
+                              }
+                           ]
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "hint" : "second-property(first-value second-extra third-value) fourth-property(fourth-value)",
+                           "name" : "Subtask Preload Properties",
+                           "status" : "FAIL"
                         }
                      ]
                   }
