@@ -30,9 +30,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
@@ -73,17 +75,17 @@ public class TaskTree {
   }
 
   protected class NodeList {
-    protected LinkedList<Task> path = new LinkedList<>();
+    protected LinkedList<String> path = new LinkedList<>();
     protected List<Node> nodes;
     protected Set<String> names = new HashSet<>();
 
-    protected void addSubDefinitions(List<Task> tasks) {
+    protected void addSubDefinitions(List<Task> tasks, Map<String, String> parentProperties) {
       for (Task task : tasks) {
-        if (task != null && !path.contains(task) && names.add(task.name)) {
+        if (task != null && !path.contains(task.name) && names.add(task.name)) {
           // path check above detects looping definitions
           // names check above detects duplicate subtasks
           try {
-            nodes.add(new Node(task, path));
+            nodes.add(new Node(task, path, parentProperties));
             continue;
           } catch (Exception e) {
           } // bad definition, handled below
@@ -97,7 +99,7 @@ public class TaskTree {
     public List<Node> getRootNodes() throws ConfigInvalidException, IOException {
       if (nodes == null) {
         nodes = new ArrayList<>();
-        addSubDefinitions(getRootTasks());
+        addSubDefinitions(getRootTasks(), new HashMap<String, String>());
       }
       return nodes;
     }
@@ -110,11 +112,11 @@ public class TaskTree {
   public class Node extends NodeList {
     public final Task definition;
 
-    public Node(Task definition, List<Task> path) {
+    public Node(Task definition, List<String> path, Map<String, String> parentProperties) {
       this.definition = definition;
       this.path.addAll(path);
-      this.path.add(definition);
-      new Properties(definition);
+      this.path.add(definition.name);
+      new Properties(definition, parentProperties);
     }
 
     public List<Node> getSubNodes() throws OrmException {
@@ -129,6 +131,10 @@ public class TaskTree {
       addSubDefinitions(getSubTasks());
       addSubFileDefinitions();
       addExternalDefinitions();
+    }
+
+    protected void addSubDefinitions(List<Task> tasks) {
+      addSubDefinitions(tasks, definition.properties);
     }
 
     protected void addSubFileDefinitions() {
