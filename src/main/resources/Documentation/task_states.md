@@ -53,7 +53,7 @@ states are affected by their own criteria and their subtasks' states.
 
 [root "Root READY (subtask PASS)"]
   applicable = is:open
-  pass = -is:open
+  pass = NOT is:open
   subtask = Subtask PASS
   ready-hint = You must now run the ready task
 
@@ -70,12 +70,12 @@ states are affected by their own criteria and their subtasks' states.
 [root "Root IN PROGRESS"]
    applicable = is:open
    in-progress = is:open
-   pass = -is:open
+   pass = NOT is:open
 
 [root "Root NOT IN PROGRESS"]
    applicable = is:open
-   in-progress = -is:open
-   pass = -is:open
+   in-progress = NOT is:open
+   pass = NOT is:open
 
 [root "Subtasks File"]
   subtasks-file = common.config
@@ -132,7 +132,7 @@ states are affected by their own criteria and their subtasks' states.
 
 [task "Subtask READY"]
   applicable = is:open
-  pass = -is:open
+  pass = NOT is:open
   subtask = Subtask PASS
 
 [task "Subtask PASS"]
