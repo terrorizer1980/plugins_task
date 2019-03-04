@@ -8,14 +8,17 @@ states are affected by their own criteria and their subtasks' states.
 
 ```
 [root "Root N/A"]
-  applicable = is:closed
+  applicable = is:closed # Assumes test query is "is:open"
+
+[root "Root APPLICABLE"]
+  applicable = is:open # Assumes test query is "is:open"
+  pass = True
+  subtask = Subtask APPLICABLE
 
 [root "Root PASS"]
-  applicable = is:open
   pass = True
 
 [root "Root FAIL"]
-  applicable = is:open
   fail = True
 
 [root "Root straight PASS"]
@@ -36,19 +39,16 @@ states are affected by their own criteria and their subtasks' states.
   fail = is:open
 
 [root "Root grouping PASS (subtask PASS)"]
-  applicable = is:open
   subtask = Subtask PASS
 
 [root "Root grouping WAITING (subtask READY)"]
-  applicable = is:open
   subtask = Subtask READY
 
 [root "Root grouping WAITING (subtask FAIL)"]
-  applicable = is:open
   subtask = Subtask FAIL
 
 [root "Root grouping NA (subtask NA)"]
-  applicable = is:open
+  applicable = is:open # Assumes Subtask NA has "applicable = NOT is:open"
   subtask = Subtask NA
 
 [root "Root READY (subtask PASS)"]
@@ -78,30 +78,24 @@ states are affected by their own criteria and their subtasks' states.
    pass = -is:open
 
 [root "Subtasks File"]
-  applicable = is:open
   subtasks-file = common.config
 
 [root "Subtasks File (Missing)"]
-  applicable = is:open
   subtasks-file = common.config
   subtasks-file = missing
 
 [root "Subtasks External"]
-  applicable = is:open
   subtasks-external = user special
 
 [root "Subtasks External (Missing)"]
-  applicable = is:open
   subtasks-external = user special
   subtasks-external = missing
 
 [root "Subtasks External (User Missing)"]
-  applicable = is:open
   subtasks-external = user special
   subtasks-external = user missing
 
 [root "Subtasks External (File Missing)"]
-  applicable = is:open
   subtasks-external = user special
   subtasks-external = file missing
 
@@ -113,20 +107,23 @@ states are affected by their own criteria and their subtasks' states.
   subtask = Subtask Properties
 
 [root "INVALIDS"]
-  applicable = is:open
   subtasks-file = invalids.config
 
 [root "Root NA Pass"]
-  applicable = -is:open
+  applicable = NOT is:open # Assumes test query is "is:open"
   pass = True
 
 [root "Root NA Fail"]
-  applicable = -is:open
+  applicable = NOT is:open # Assumes test query is "is:open"
   fail = True
 
 [root "NA INVALIDS"]
-  applicable = -is:open
+  applicable = NOT is:open # Assumes test query is "is:open"
   subtasks-file = invalids.config
+
+[task "Subtask APPLICABLE"]
+  applicable = is:open
+  pass = True
 
 [task "Subtask FAIL"]
   applicable = is:open
@@ -143,7 +140,7 @@ states are affected by their own criteria and their subtasks' states.
   pass = is:open
 
 [task "Subtask NA"]
-  applicable = NOT is:open
+  applicable = NOT is:open # Assumes test query is "is:open"
 
 [task "Subtask Properties"]
   subtask = Subtask Properties Hints
@@ -189,18 +186,15 @@ states are affected by their own criteria and their subtasks' states.
 [task "file task/common.config FAIL"]
   applicable = is:open
   fail = is:open
-  pass = is:open
 ```
 
 `task/invalids.config` file in project `All-Projects` on ref `refs/meta/config`.
 
 ```
 [task "No PASS criteria"]
-  applicable = is:open
   fail-hint = Invalid without Pass criteria and without subtasks
 
 [task "WAITING (subtask INVALID)"]
-  applicable = is:open
   pass = is:open
   subtask = Subtask INVALID
 
@@ -209,34 +203,30 @@ states are affected by their own criteria and their subtasks' states.
   subtask = Subtask INVALID
 
 [task "WAITING (subtask missing)"]
-  applicable = is:open
   pass = is:open
   subtask = MISSING # security bug: subtask name appears in output
 
 [task "Grouping WAITING (subtask INVALID)"]
-  applicable = is:open
   subtask = Subtask INVALID
 
 [task "Grouping WAITING (subtask missing)"]
-  applicable = is:open
   subtask = MISSING  # security bug: subtask name appears in output
 
 [task "Subtask INVALID"]
-  applicable = is:open
   fail-hint = Use when an INVALID subtask is needed, not meant as a test case in itself
 
 [task "NA Bad PASS query"]
-  applicable = -is:open
+  applicable = NOT is:open # Assumes test query is "is:open"
   fail = True
   pass = has:bad
 
 [task "NA Bad FAIL query"]
-  applicable = -is:open
+  applicable = NOT is:open # Assumes test query is "is:open"
   pass = True
   fail = has:bad
 
 [task "NA Bad INPROGRESS query"]
-  applicable = -is:open
+  applicable = NOT is:open # Assumes test query is "is:open"
   fail = True
   in-progress = has:bad
 
@@ -259,7 +249,6 @@ states are affected by their own criteria and their subtasks' states.
 [task "userfile task/special.config FAIL"]
   applicable = is:open
   fail = is:open
-  pass = is:open
 ```
 
 The expected output for the above task config looks like:
@@ -273,6 +262,18 @@ The expected output for the above task config looks like:
       {
          "name" : "task",
          "roots" : [
+            {
+               "hasPass" : true,
+               "name" : "Root APPLICABLE",
+               "status" : "PASS",
+               "subTasks" : [
+                  {
+                     "hasPass" : true,
+                     "name" : "Subtask APPLICABLE",
+                     "status" : "PASS"
+                  }
+               ]
+            },
             {
                "hasPass" : true,
                "name" : "Root PASS",

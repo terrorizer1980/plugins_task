@@ -11,6 +11,20 @@
             {
                "applicable" : true,
                "hasPass" : true,
+               "name" : "Root APPLICABLE",
+               "status" : "PASS",
+               "subTasks" : [
+                  {
+                     "applicable" : true,
+                     "hasPass" : true,
+                     "name" : "Subtask APPLICABLE",
+                     "status" : "PASS"
+                  }
+               ]
+            },
+            {
+               "applicable" : true,
+               "hasPass" : true,
                "name" : "Root PASS",
                "status" : "PASS"
             },

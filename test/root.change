@@ -1,9 +1,7 @@
 [root "INVALIDS Preview"]
-  applicable = is:open
   subtasks-file = invalids.config
 
 [root "Root PASS Preview"]
-  applicable = is:open
   pass = True
 
 [root "Root READY (subtask PASS) Preview"]
@@ -13,7 +11,6 @@
   ready-hint = You must now run the ready task
 
 [root "Subtasks External Preview"]
-  applicable = is:open
   subtasks-external = user special Preview
 
 [root "Root NA Pass Preview"]
