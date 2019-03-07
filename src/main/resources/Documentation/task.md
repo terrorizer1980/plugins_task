@@ -172,6 +172,29 @@ Example:
 ```
     subtask = "Code Review"
     subtask = "License Approval"
+    ...
+    [task "Code Review"]
+    ...
+    [task "License Approval"]
+    ...
+```
+
+To define a subtask that may not exist and that will not cause the parent task
+to be INVALID, follow the subtask name with pipe (`|`) character. This feature
+is particularly useful when a property is used in the subtask name.
+
+```
+    subtask = Optional Subtask {$_name} |
+```
+
+To define an alternate subtask to load when an optional subtask does not exist,
+list the alterante subtask name after the pipe (`|`) character. This feature
+may be chained together as many times as needed.
+
+```
+    subtask = Optional Subtask {$_name} |
+              Backup Optional Subtask {$_name} Backup |
+              Default Subtask # Must exist if the above two don't!
 ```
 
 `subtasks-external`

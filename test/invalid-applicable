@@ -103,6 +103,17 @@
                   },
                   {
                      "hasPass" : false,
+                     "name" : "Subtask Optional",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
+                     "hasPass" : false,
                      "name" : "Looping",
                      "status" : "WAITING",
                      "subTasks" : [

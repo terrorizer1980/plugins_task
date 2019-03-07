@@ -135,6 +135,18 @@
                      "status" : "INVALID"
                   },
                   {
+                     "applicable" : true,
+                     "hasPass" : false,
+                     "name" : "Subtask Optional",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
                      "applicable" : false,
                      "hasPass" : true,
                      "name" : "NA Bad PASS query",
@@ -257,6 +269,18 @@
                      "hasPass" : false,
                      "name" : "Subtask INVALID",
                      "status" : "INVALID"
+                  },
+                  {
+                     "applicable" : true,
+                     "hasPass" : false,
+                     "name" : "Subtask Optional",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
                   },
                   {
                      "applicable" : false,

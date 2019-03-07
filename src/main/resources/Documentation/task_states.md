@@ -77,6 +77,10 @@ states are affected by their own criteria and their subtasks' states.
    in-progress = NOT is:open
    pass = NOT is:open
 
+[root "Root Optional subtasks"]
+   subtask = OPTIONAL MISSING |
+   subtask = Subtask Optional |
+
 [root "Subtasks File"]
   subtasks-file = common.config
 
@@ -142,6 +146,12 @@ states are affected by their own criteria and their subtasks' states.
 [task "Subtask PASS"]
   applicable = is:open
   pass = is:open
+
+[task "Subtask Optional"]
+   subtask = Subtask PASS |
+   subtask = OPTIONAL MISSING | Subtask FAIL
+   subtask = OPTIONAL MISSING | OPTIONAL MISSING |
+   subtask = OPTIONAL MISSING | OPTIONAL MISSING | Subtask READY
 
 [task "Subtask NA"]
   applicable = NOT is:open # Assumes test query is "is:open"
@@ -263,6 +273,9 @@ states are affected by their own criteria and their subtasks' states.
 
 [task "Subtask INVALID"]
   fail-hint = Use when an INVALID subtask is needed, not meant as a test case in itself
+
+[task "Subtask Optional"]
+   subtask = MISSING | MISSING
 
 [task "NA Bad PASS query"]
   applicable = NOT is:open # Assumes test query is "is:open"
@@ -451,6 +464,42 @@ The expected output for the above task config looks like:
                "inProgress" : false,
                "name" : "Root NOT IN PROGRESS",
                "status" : "READY"
+            },
+            {
+               "hasPass" : false,
+               "name" : "Root Optional subtasks",
+               "status" : "WAITING",
+               "subTasks" : [
+                  {
+                     "hasPass" : false,
+                     "name" : "Subtask Optional",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "hasPass" : true,
+                           "name" : "Subtask PASS",
+                           "status" : "PASS"
+                        },
+                        {
+                           "hasPass" : true,
+                           "name" : "Subtask FAIL",
+                           "status" : "FAIL"
+                        },
+                        {
+                           "hasPass" : true,
+                           "name" : "Subtask READY",
+                           "status" : "READY",
+                           "subTasks" : [
+                              {
+                                 "hasPass" : true,
+                                 "name" : "Subtask PASS",
+                                 "status" : "PASS"
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               ]
             },
             {
                "hasPass" : false,
@@ -744,6 +793,17 @@ The expected output for the above task config looks like:
                      "hasPass" : false,
                      "name" : "Subtask INVALID",
                      "status" : "INVALID"
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "Subtask Optional",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
                   },
                   {
                      "hasPass" : false,

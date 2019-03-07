@@ -190,6 +190,48 @@
             {
                "applicable" : true,
                "hasPass" : false,
+               "name" : "Root Optional subtasks",
+               "status" : "WAITING",
+               "subTasks" : [
+                  {
+                     "applicable" : true,
+                     "hasPass" : false,
+                     "name" : "Subtask Optional",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "name" : "Subtask PASS",
+                           "status" : "PASS"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "name" : "Subtask FAIL",
+                           "status" : "FAIL"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "name" : "Subtask READY",
+                           "status" : "READY",
+                           "subTasks" : [
+                              {
+                                 "applicable" : true,
+                                 "hasPass" : true,
+                                 "name" : "Subtask PASS",
+                                 "status" : "PASS"
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               ]
+            },
+            {
+               "applicable" : true,
+               "hasPass" : false,
                "name" : "Subtasks File",
                "status" : "WAITING",
                "subTasks" : [
@@ -527,6 +569,18 @@
                      "status" : "INVALID"
                   },
                   {
+                     "applicable" : true,
+                     "hasPass" : false,
+                     "name" : "Subtask Optional",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
                      "applicable" : false,
                      "hasPass" : true,
                      "name" : "NA Bad PASS query",
@@ -661,6 +715,18 @@
                      "hasPass" : false,
                      "name" : "Subtask INVALID",
                      "status" : "INVALID"
+                  },
+                  {
+                     "applicable" : true,
+                     "hasPass" : false,
+                     "name" : "Subtask Optional",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
                   },
                   {
                      "applicable" : false,

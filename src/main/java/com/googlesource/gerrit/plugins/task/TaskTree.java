@@ -36,6 +36,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
 /**
@@ -46,6 +48,8 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
  */
 public class TaskTree {
   protected static final String TASK_DIR = "task";
+  protected static final Pattern OPTIONAL_TASK_PATTERN =
+      Pattern.compile("([^ |]*( *[^ |])*) *\\| *");
 
   protected final AccountResolver accountResolver;
   protected final AllUsersNameProvider allUsers;
@@ -166,9 +170,26 @@ public class TaskTree {
     protected List<Task> getSubTasks() {
       List<Task> tasks = new ArrayList<>();
       for (String subTask : definition.subTasks) {
-        tasks.add(definition.config.getTask(subTask));
+        addSubTaskTo(subTask, tasks);
       }
       return tasks;
+    }
+
+    protected void addSubTaskTo(String subTaskEntry, List<Task> tasks) {
+      int end = 0;
+      Matcher m = OPTIONAL_TASK_PATTERN.matcher(subTaskEntry);
+      while (m.find()) {
+        end = m.end();
+        Task subTask = definition.config.getTask(m.group(1));
+        if (subTask != null) {
+          tasks.add(subTask);
+          return;
+        }
+      }
+      String last = subTaskEntry.substring(end);
+      if (!"".equals(last)) { // Last entry was not optional
+        tasks.add(definition.config.getTask(subTaskEntry.substring(end)));
+      }
     }
 
     protected List<Task> getTasks(External external)
