@@ -594,8 +594,7 @@ The expected output for the above task config looks like:
                      "status" : "WAITING",
                      "subTasks" : [
                         {
-                           "hasPass" : false,
-                           "name" : "MISSING",
+                           "name" : "UNKNOWN",
                            "status" : "INVALID"
                         }
                      ]
@@ -618,8 +617,7 @@ The expected output for the above task config looks like:
                      "status" : "WAITING",
                      "subTasks" : [
                         {
-                           "hasPass" : false,
-                           "name" : "MISSING",
+                           "name" : "UNKNOWN",
                            "status" : "INVALID"
                         }
                      ]

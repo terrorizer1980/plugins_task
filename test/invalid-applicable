@@ -68,8 +68,7 @@
                      "status" : "WAITING",
                      "subTasks" : [
                         {
-                           "hasPass" : false,
-                           "name" : "MISSING",
+                           "name" : "UNKNOWN",
                            "status" : "INVALID"
                         }
                      ]
@@ -92,8 +91,7 @@
                      "status" : "WAITING",
                      "subTasks" : [
                         {
-                           "hasPass" : false,
-                           "name" : "MISSING",
+                           "name" : "UNKNOWN",
                            "status" : "INVALID"
                         }
                      ]

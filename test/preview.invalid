@@ -53,9 +53,7 @@
                      "status" : "WAITING",
                      "subTasks" : [
                         {
-                           "applicable" : true,
-                           "hasPass" : false,
-                           "name" : "MISSING",
+                           "name" : "UNKNOWN",
                            "status" : "INVALID"
                         }
                      ]
@@ -81,9 +79,7 @@
                      "status" : "WAITING",
                      "subTasks" : [
                         {
-                           "applicable" : true,
-                           "hasPass" : false,
-                           "name" : "MISSING",
+                           "name" : "UNKNOWN",
                            "status" : "INVALID"
                         }
                      ]
@@ -181,9 +177,7 @@
                      "status" : "WAITING",
                      "subTasks" : [
                         {
-                           "applicable" : true,
-                           "hasPass" : false,
-                           "name" : "MISSING",
+                           "name" : "UNKNOWN",
                            "status" : "INVALID"
                         }
                      ]
@@ -209,9 +203,7 @@
                      "status" : "WAITING",
                      "subTasks" : [
                         {
-                           "applicable" : true,
-                           "hasPass" : false,
-                           "name" : "MISSING",
+                           "name" : "UNKNOWN",
                            "status" : "INVALID"
                         }
                      ]

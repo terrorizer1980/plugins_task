@@ -136,7 +136,8 @@ public class TaskConfig extends AbstractVersionedMetaData {
   }
 
   public Task getTask(String name) {
-    return new Task(new SubSection(SECTION_TASK, name), isVisible, isTrusted);
+    SubSection subSection = new SubSection(SECTION_TASK, name);
+    return getNames(subSection).isEmpty() ? null : new Task(subSection, isVisible, isTrusted);
   }
 
   public External getExternal(String name) {
