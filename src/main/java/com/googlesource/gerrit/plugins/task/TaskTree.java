@@ -36,8 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
 /**
@@ -48,8 +46,6 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
  */
 public class TaskTree {
   protected static final String TASK_DIR = "task";
-  protected static final Pattern OPTIONAL_TASK_PATTERN =
-      Pattern.compile("([^ |]*( *[^ |])*) *\\| *");
 
   protected final AccountResolver accountResolver;
   protected final AllUsersNameProvider allUsers;
@@ -116,7 +112,8 @@ public class TaskTree {
   public class Node extends NodeList {
     public final Task definition;
 
-    public Node(Task definition, List<String> path, Map<String, String> parentProperties) {
+    public Node(Task definition, List<String> path, Map<String, String> parentProperties)
+        throws ConfigInvalidException {
       this.definition = definition;
       this.path.addAll(path);
       this.path.add(definition.name);
@@ -133,7 +130,7 @@ public class TaskTree {
     }
 
     protected void addSubDefinitions() throws OrmException {
-      addSubDefinitions(getSubTasks());
+      addSubDefinitions(getSubDefinitions());
       addSubFileDefinitions();
       addExternalDefinitions();
     }
@@ -159,7 +156,7 @@ public class TaskTree {
           if (ext == null) {
             nodes.add(null);
           } else {
-            addSubDefinitions(getTasks(ext));
+            addSubDefinitions(getTaskDefinitions(ext));
           }
         } catch (ConfigInvalidException | IOException e) {
           nodes.add(null);
@@ -167,32 +164,22 @@ public class TaskTree {
       }
     }
 
-    protected List<Task> getSubTasks() {
-      List<Task> tasks = new ArrayList<>();
-      for (String subTask : definition.subTasks) {
-        addSubTaskTo(subTask, tasks);
-      }
-      return tasks;
-    }
-
-    protected void addSubTaskTo(String subTaskEntry, List<Task> tasks) {
-      int end = 0;
-      Matcher m = OPTIONAL_TASK_PATTERN.matcher(subTaskEntry);
-      while (m.find()) {
-        end = m.end();
-        Task subTask = definition.config.getTask(m.group(1));
-        if (subTask != null) {
-          tasks.add(subTask);
-          return;
+    protected List<Task> getSubDefinitions() {
+      List<Task> defs = new ArrayList<>();
+      for (String name : definition.subTasks) {
+        try {
+          Task def = definition.config.getTaskOptional(name);
+          if (def != null) {
+            defs.add(def);
+          }
+        } catch (ConfigInvalidException e) {
+          defs.add(null);
         }
       }
-      String last = subTaskEntry.substring(end);
-      if (!"".equals(last)) { // Last entry was not optional
-        tasks.add(definition.config.getTask(subTaskEntry.substring(end)));
-      }
+      return defs;
     }
 
-    protected List<Task> getTasks(External external)
+    protected List<Task> getTaskDefinitions(External external)
         throws ConfigInvalidException, IOException, OrmException {
       return getTasks(resolveUserBranch(external.user), external.file);
     }

@@ -21,18 +21,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 /** Use to pre-load a task definition with values from its preload-task definition. */
 public class Preloader {
-  public static void preload(Task definition) {
+  public static void preload(Task definition) throws ConfigInvalidException {
     String name = definition.preloadTask;
     if (name != null) {
-      Task task = definition.config.getTask(name);
-      if (task == null) {
-        throw new RuntimeException("Unknown preload-task.");
+      Task task = definition.config.getTaskOptional(name);
+      if (task != null) {
+        preload(task);
+        preloadFrom(definition, task);
       }
-      preload(task);
-      preloadFrom(definition, task);
     }
   }
 

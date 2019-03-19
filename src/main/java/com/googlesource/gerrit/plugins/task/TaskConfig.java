@@ -24,6 +24,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 
 /** Task Configuration file living in git */
 public class TaskConfig extends AbstractVersionedMetaData {
@@ -84,6 +87,9 @@ public class TaskConfig extends AbstractVersionedMetaData {
     }
   }
 
+  protected static final Pattern OPTIONAL_TASK_PATTERN =
+      Pattern.compile("([^ |]*( *[^ |])*) *\\| *");
+
   protected static final String SECTION_EXTERNAL = "external";
   protected static final String SECTION_ROOT = "root";
   protected static final String SECTION_TASK = "task";
@@ -138,7 +144,31 @@ public class TaskConfig extends AbstractVersionedMetaData {
     return externals;
   }
 
-  public Task getTask(String name) {
+  /* returs null only if optional and not found */
+  public Task getTaskOptional(String name) throws ConfigInvalidException {
+    int end = 0;
+    Matcher m = OPTIONAL_TASK_PATTERN.matcher(name);
+    while (m.find()) {
+      end = m.end();
+      Task task = getTaskOrNull(m.group(1));
+      if (task != null) {
+        return task;
+      }
+    }
+
+    String last = name.substring(end);
+    if (!"".equals(last)) { // Last entry was not optional
+      Task task = getTaskOrNull(last);
+      if (task != null) {
+        return task;
+      }
+      throw new ConfigInvalidException("task not defined");
+    }
+    return null;
+  }
+
+  /* returns null if not found */
+  protected Task getTaskOrNull(String name) {
     SubSection subSection = new SubSection(SECTION_TASK, name);
     return getNames(subSection).isEmpty() ? null : new Task(subSection, isVisible, isTrusted);
   }

@@ -472,6 +472,12 @@
                         {
                            "applicable" : true,
                            "hasPass" : true,
+                           "name" : "Subtask Preload Optional",
+                           "status" : "PASS"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
                            "hint" : "second-property(first-value second-extra third-value) fourth-property(fourth-value)",
                            "name" : "Subtask Preload Properties",
                            "status" : "FAIL"

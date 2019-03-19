@@ -185,6 +185,7 @@ states are affected by their own criteria and their subtasks' states.
   subtask = Subtask Preload Override Pass
   subtask = Subtask Preload Override Fail
   subtask = Subtask Preload Extend Subtasks
+  subtask = Subtask Preload Optional
   subtask = Subtask Preload Properties
 
 [task "Subtask Preload Preload"]
@@ -212,6 +213,9 @@ states are affected by their own criteria and their subtasks' states.
 [task "Subtask Preload Extend Subtasks"]
   preload-task = Subtask READY
   subtask = Subtask APPLICABLE
+
+[task "Subtask Preload Optional"]
+  preload-task = Missing | Subtask PASS
 
 [task "Subtask Preload Properties"]
   preload-task = Subtask Properties Hints
@@ -706,6 +710,11 @@ The expected output for the above task config looks like:
                                  "status" : "PASS"
                               }
                            ]
+                        },
+                        {
+                           "hasPass" : true,
+                           "name" : "Subtask Preload Optional",
+                           "status" : "PASS"
                         },
                         {
                            "hasPass" : true,
