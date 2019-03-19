@@ -79,13 +79,13 @@ public class TaskTree {
     protected List<Node> nodes;
     protected Set<String> names = new HashSet<>();
 
-    protected void addSubDefinitions(List<Task> tasks, Map<String, String> parentProperties) {
-      for (Task task : tasks) {
-        if (task != null && !path.contains(task.name) && names.add(task.name)) {
+    protected void addSubDefinitions(List<Task> defs, Map<String, String> parentProperties) {
+      for (Task def : defs) {
+        if (def != null && !path.contains(def.name) && names.add(def.name)) {
           // path check above detects looping definitions
           // names check above detects duplicate subtasks
           try {
-            nodes.add(new Node(task, path, parentProperties));
+            nodes.add(new Node(def, path, parentProperties));
             continue;
           } catch (Exception e) {
           } // bad definition, handled below
@@ -99,12 +99,12 @@ public class TaskTree {
     public List<Node> getRootNodes() throws ConfigInvalidException, IOException {
       if (nodes == null) {
         nodes = new ArrayList<>();
-        addSubDefinitions(getRootTasks(), new HashMap<String, String>());
+        addSubDefinitions(getRootDefinitions(), new HashMap<String, String>());
       }
       return nodes;
     }
 
-    protected List<Task> getRootTasks() throws ConfigInvalidException, IOException {
+    protected List<Task> getRootDefinitions() throws ConfigInvalidException, IOException {
       return taskFactory.getRootConfig().getRootTasks();
     }
   }
@@ -135,8 +135,8 @@ public class TaskTree {
       addExternalDefinitions();
     }
 
-    protected void addSubDefinitions(List<Task> tasks) {
-      addSubDefinitions(tasks, definition.properties);
+    protected void addSubDefinitions(List<Task> defs) {
+      addSubDefinitions(defs, definition.properties);
     }
 
     protected void addSubFileDefinitions() {
