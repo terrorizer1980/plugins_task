@@ -55,6 +55,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     public String name;
     public Status status;
     public List<TaskAttribute> subTasks;
+    public Long evaluationMilliSeconds;
 
     public TaskAttribute(String name) {
       this.name = name;
@@ -114,6 +115,11 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       throws OrmException {
     try {
       Task def = node.definition;
+      TaskAttribute att = new TaskAttribute(def.name);
+      if (options.evaluationTime) {
+        att.evaluationMilliSeconds = millis();
+      }
+
       boolean applicable = match(c, def.applicable);
       if (!def.isVisible) {
         if (!def.isTrusted || (!applicable && !options.onlyApplicable)) {
@@ -123,7 +129,6 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       }
 
       if (applicable || !options.onlyApplicable) {
-        TaskAttribute att = new TaskAttribute(def.name);
         att.hasPass = def.pass != null || def.fail != null;
         att.subTasks = getSubTasks(c, node);
         att.status = getStatus(c, def, att);
@@ -142,6 +147,10 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
             }
             att.hint = getHint(att.status, def);
             att.exported = def.exported;
+
+            if (options.evaluationTime) {
+              att.evaluationMilliSeconds = millis() - att.evaluationMilliSeconds;
+            }
             atts.add(att);
           }
         }
@@ -149,6 +158,10 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     } catch (QueryParseException e) {
       atts.add(invalid()); // bad applicability query
     }
+  }
+
+  protected long millis() {
+    return System.nanoTime() / 1000000;
   }
 
   protected List<TaskAttribute> getSubTasks(ChangeData c, Node node) throws OrmException {

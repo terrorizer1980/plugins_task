@@ -394,6 +394,12 @@ running normally. If all tasks are properly configured, this switch should
 not output anything. This switch is particularly useful in combination
 with the **\-\-@PLUGIN@\-\-preview** switch.
 
+**\-\-@PLUGIN@\-\-task\-\-evaluation-time**
+
+This switch is meant as a debug switch to evaluate task performance. This
+switch outputs an elapsed time value on every task indicating how much time
+it took to evaluate a task and its subtasks.
+
 When tasks are appended to changes, they will have a "task" section under
 the plugins section like below:
 
