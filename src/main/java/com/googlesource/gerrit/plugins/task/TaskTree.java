@@ -113,7 +113,7 @@ public class TaskTree {
       addExternalDefinitions();
     }
 
-    protected void addSubFileDefinitions() throws OrmException {
+    protected void addSubFileDefinitions() {
       for (String file : definition.subTasksFiles) {
         try {
           addSubDefinitions(getTasks(definition.config.getBranch(), file));
