@@ -16,7 +16,7 @@ package com.googlesource.gerrit.plugins.task;
 
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.server.DynamicOptions.DynamicBean;
-import com.google.gerrit.server.query.change.ChangeQueryProcessor.ChangeAttributeFactory;
+import com.google.gerrit.server.change.ChangeAttributeFactory;
 import com.google.gerrit.server.restapi.change.QueryChanges;
 import com.google.gerrit.sshd.commands.Query;
 import com.google.inject.AbstractModule;

@@ -17,10 +17,10 @@ package com.googlesource.gerrit.plugins.task;
 import com.google.gerrit.extensions.common.PluginDefinedInfo;
 import com.google.gerrit.index.query.Predicate;
 import com.google.gerrit.index.query.QueryParseException;
+import com.google.gerrit.server.DynamicOptions.BeanProvider;
+import com.google.gerrit.server.change.ChangeAttributeFactory;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
-import com.google.gerrit.server.query.change.ChangeQueryProcessor;
-import com.google.gerrit.server.query.change.ChangeQueryProcessor.ChangeAttributeFactory;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.googlesource.gerrit.plugins.task.TaskConfig.Task;
@@ -79,8 +79,8 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   }
 
   @Override
-  public PluginDefinedInfo create(ChangeData c, ChangeQueryProcessor qp, String plugin) {
-    options = (Modules.MyOptions) qp.getDynamicBean(plugin);
+  public PluginDefinedInfo create(ChangeData c, BeanProvider beanProvider, String plugin) {
+    options = (Modules.MyOptions) beanProvider.getDynamicBean(plugin);
     if (options.all || options.onlyApplicable || options.onlyInvalid) {
       for (PatchSetArgument psa : options.patchSetArguments) {
         definitions.masquerade(psa);
