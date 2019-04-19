@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.googlesource.gerrit.plugins.task.cli;
 
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.PatchSet;
@@ -23,7 +24,6 @@ import com.google.gerrit.server.permissions.ChangePermission;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.sshd.BaseCommand.UnloggedFailure;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 
 public class PatchSetArgument {
@@ -49,17 +49,13 @@ public class PatchSetArgument {
       try {
         PatchSet.Id patchSetId = parsePatchSet(token);
         ChangeNotes changeNotes = notesFactory.createChecked(patchSetId.getParentKey());
-        permissionBackend
-            .user(user)
-            .change(changeNotes)
-            .check(ChangePermission.READ);
-        return new PatchSetArgument(
-            changeNotes.getChange(), psUtil.get(changeNotes, patchSetId));
+        permissionBackend.user(user).change(changeNotes).check(ChangePermission.READ);
+        return new PatchSetArgument(changeNotes.getChange(), psUtil.get(changeNotes, patchSetId));
       } catch (PermissionBackendException | AuthException e) {
         throw new IllegalArgumentException("database error", e);
       } catch (UnloggedFailure e) {
         throw new IllegalArgumentException(e.getMessage(), e);
-      } catch (OrmException e) {
+      } catch (StorageException e) {
         throw new IllegalArgumentException("database error", e);
       }
     }

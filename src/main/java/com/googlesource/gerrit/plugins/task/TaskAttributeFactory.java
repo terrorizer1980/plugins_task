@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.task;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.common.PluginDefinedInfo;
 import com.google.gerrit.index.query.Predicate;
 import com.google.gerrit.index.query.QueryParseException;
@@ -22,7 +23,6 @@ import com.google.gerrit.server.DynamicOptions.BeanProvider;
 import com.google.gerrit.server.change.ChangeAttributeFactory;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.googlesource.gerrit.plugins.task.TaskConfig.Task;
 import com.googlesource.gerrit.plugins.task.TaskTree.Node;
@@ -86,14 +86,14 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       }
       try {
         return createWithExceptions(c);
-      } catch (OrmException e) {
+      } catch (StorageException e) {
         log.atSevere().withCause(e).log("Cannot load tasks for: %s", c);
       }
     }
     return null;
   }
 
-  protected PluginDefinedInfo createWithExceptions(ChangeData c) throws OrmException {
+  protected PluginDefinedInfo createWithExceptions(ChangeData c) {
     TaskPluginAttribute a = new TaskPluginAttribute();
     try {
       for (Node node : definitions.getRootNodes()) {
@@ -109,8 +109,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     return a;
   }
 
-  protected void addApplicableTasks(List<TaskAttribute> tasks, ChangeData c, Node node)
-      throws OrmException {
+  protected void addApplicableTasks(List<TaskAttribute> tasks, ChangeData c, Node node) {
     try {
       Task def = node.definition;
       boolean applicable = match(c, def.applicable);
@@ -149,7 +148,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     }
   }
 
-  protected List<TaskAttribute> getSubTasks(ChangeData c, Node node) throws OrmException {
+  protected List<TaskAttribute> getSubTasks(ChangeData c, Node node) {
     List<TaskAttribute> subTasks = new ArrayList<>();
     for (Node subNode : node.getSubNodes()) {
       if (subNode == null) {
@@ -184,12 +183,12 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       match(c, task.fail);
       match(c, task.pass);
       return true;
-    } catch (OrmException | QueryParseException e) {
+    } catch (StorageException | QueryParseException e) {
       return false;
     }
   }
 
-  protected Status getStatus(ChangeData c, Task task, TaskAttribute a) throws OrmException {
+  protected Status getStatus(ChangeData c, Task task, TaskAttribute a) {
     try {
       return getStatusWithExceptions(c, task, a);
     } catch (QueryParseException e) {
@@ -198,7 +197,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   }
 
   protected Status getStatusWithExceptions(ChangeData c, Task task, TaskAttribute a)
-      throws OrmException, QueryParseException {
+      throws QueryParseException {
     if (isAllNull(task.pass, task.fail, a.subTasks)) {
       // A leaf task has no defined subtasks.
       boolean hasDefinedSubtasks =
@@ -281,7 +280,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     return true;
   }
 
-  protected boolean match(ChangeData c, String query) throws OrmException, QueryParseException {
+  protected boolean match(ChangeData c, String query) throws QueryParseException {
     if (query == null || query.equalsIgnoreCase("true")) {
       return true;
     }
@@ -300,7 +299,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
           return true;
         }
         return cqb.parse(query).asMatchable().match(c);
-      } catch (OrmException | QueryParseException e) {
+      } catch (StorageException | QueryParseException e) {
       }
     }
     return null;

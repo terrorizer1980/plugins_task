@@ -22,7 +22,6 @@ import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.AccountResolver;
 import com.google.gerrit.server.config.AllUsersNameProvider;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.googlesource.gerrit.plugins.task.TaskConfig.External;
 import com.googlesource.gerrit.plugins.task.TaskConfig.Task;
@@ -100,7 +99,7 @@ public class TaskTree {
       this.path.add(definition);
     }
 
-    public List<Node> getSubNodes() throws OrmException {
+    public List<Node> getSubNodes() {
       if (nodes == null) {
         nodes = new ArrayList<>();
         addSubDefinitions();
@@ -108,7 +107,7 @@ public class TaskTree {
       return nodes;
     }
 
-    protected void addSubDefinitions() throws OrmException {
+    protected void addSubDefinitions() {
       addSubDefinitions(getSubTasks());
       addSubFileDefinitions();
       addExternalDefinitions();
@@ -124,7 +123,7 @@ public class TaskTree {
       }
     }
 
-    protected void addExternalDefinitions() throws OrmException {
+    protected void addExternalDefinitions() {
       for (String external : definition.subTasksExternals) {
         try {
           External ext = definition.config.getExternal(external);
@@ -147,8 +146,7 @@ public class TaskTree {
       return tasks;
     }
 
-    protected List<Task> getTasks(External external)
-        throws ConfigInvalidException, IOException, OrmException {
+    protected List<Task> getTasks(External external) throws ConfigInvalidException, IOException {
       return getTasks(resolveUserBranch(external.user), external.file);
     }
 
@@ -171,7 +169,7 @@ public class TaskTree {
     }
 
     protected Branch.NameKey resolveUserBranch(String user)
-        throws ConfigInvalidException, IOException, OrmException {
+        throws ConfigInvalidException, IOException {
       if (user == null) {
         throw new ConfigInvalidException("External user not defined");
       }
