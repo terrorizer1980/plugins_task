@@ -14,7 +14,7 @@
 
 package com.google.gerrit.server.git.meta;
 
-import com.google.gerrit.reviewdb.client.Branch;
+import com.google.gerrit.reviewdb.client.BranchNameKey;
 import java.io.IOException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.CommitBuilder;
@@ -22,18 +22,18 @@ import org.eclipse.jgit.lib.Config;
 
 /** Versioned Configuration file living in git */
 public class AbstractVersionedMetaData extends VersionedMetaData {
-  protected final Branch.NameKey branch;
+  protected final BranchNameKey branch;
   protected final String fileName;
   protected Config cfg;
 
-  public AbstractVersionedMetaData(Branch.NameKey branch, String fileName) {
+  public AbstractVersionedMetaData(BranchNameKey branch, String fileName) {
     this.branch = branch;
     this.fileName = fileName;
   }
 
   @Override
   protected String getRefName() {
-    return branch.get();
+    return branch.branch();
   }
 
   protected String getFileName() {
@@ -52,7 +52,7 @@ public class AbstractVersionedMetaData extends VersionedMetaData {
     return cfg;
   }
 
-  public Branch.NameKey getBranch() {
+  public BranchNameKey getBranch() {
     return branch;
   }
 

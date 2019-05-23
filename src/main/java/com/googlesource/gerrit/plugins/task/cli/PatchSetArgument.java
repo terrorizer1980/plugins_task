@@ -48,7 +48,7 @@ public class PatchSetArgument {
     public PatchSetArgument createForArgument(String token) {
       try {
         PatchSet.Id patchSetId = parsePatchSet(token);
-        ChangeNotes changeNotes = notesFactory.createChecked(patchSetId.getParentKey());
+        ChangeNotes changeNotes = notesFactory.createChecked(patchSetId.changeId());
         permissionBackend.user(user).change(changeNotes).check(ChangePermission.READ);
         return new PatchSetArgument(changeNotes.getChange(), psUtil.get(changeNotes, patchSetId));
       } catch (PermissionBackendException | AuthException e) {
@@ -90,7 +90,7 @@ public class PatchSetArgument {
   }
 
   public void ensureLatest() {
-    if (!change.currentPatchSetId().equals(patchSet.getId())) {
+    if (!change.currentPatchSetId().equals(patchSet.id())) {
       throw new IllegalArgumentException(patchSet + " is not the latest patch set");
     }
   }

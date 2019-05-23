@@ -16,7 +16,7 @@ package com.googlesource.gerrit.plugins.task;
 
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
 import com.google.gerrit.reviewdb.client.Account;
-import com.google.gerrit.reviewdb.client.Branch;
+import com.google.gerrit.reviewdb.client.BranchNameKey;
 import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.CurrentUser;
@@ -150,7 +150,7 @@ public class TaskTree {
       return getTasks(resolveUserBranch(external.user), external.file);
     }
 
-    protected List<Task> getTasks(Branch.NameKey branch, String file)
+    protected List<Task> getTasks(BranchNameKey branch, String file)
         throws ConfigInvalidException, IOException {
       return taskFactory
           .getTaskConfig(branch, resolveTaskFileName(file), definition.isTrusted)
@@ -168,7 +168,7 @@ public class TaskTree {
       return p.toString();
     }
 
-    protected Branch.NameKey resolveUserBranch(String user)
+    protected BranchNameKey resolveUserBranch(String user)
         throws ConfigInvalidException, IOException {
       if (user == null) {
         throw new ConfigInvalidException("External user not defined");
@@ -179,7 +179,7 @@ public class TaskTree {
       } catch (UnprocessableEntityException e) {
         throw new ConfigInvalidException("Cannot resolve user: " + user);
       }
-      return new Branch.NameKey(allUsers.get(), RefNames.refsUsers(acct));
+      return BranchNameKey.create(allUsers.get(), RefNames.refsUsers(acct));
     }
   }
 }

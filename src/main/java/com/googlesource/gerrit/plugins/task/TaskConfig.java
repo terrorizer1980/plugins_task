@@ -15,7 +15,7 @@
 package com.googlesource.gerrit.plugins.task;
 
 import com.google.gerrit.common.Container;
-import com.google.gerrit.reviewdb.client.Branch;
+import com.google.gerrit.reviewdb.client.BranchNameKey;
 import com.google.gerrit.server.git.meta.AbstractVersionedMetaData;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,7 +93,7 @@ public class TaskConfig extends AbstractVersionedMetaData {
   public boolean isVisible;
   public boolean isTrusted;
 
-  public TaskConfig(Branch.NameKey branch, String fileName, boolean isVisible, boolean isTrusted) {
+  public TaskConfig(BranchNameKey branch, String fileName, boolean isVisible, boolean isTrusted) {
     super(branch, fileName);
     this.isVisible = isVisible;
     this.isTrusted = isTrusted;

@@ -16,7 +16,7 @@ package com.googlesource.gerrit.plugins.task;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.extensions.restapi.AuthException;
-import com.google.gerrit.reviewdb.client.Branch;
+import com.google.gerrit.reviewdb.client.BranchNameKey;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.config.AllProjectsName;
@@ -44,7 +44,7 @@ public class TaskConfigFactory {
   protected final CurrentUser user;
   protected final AllProjectsName allProjects;
 
-  protected final Map<Branch.NameKey, PatchSetArgument> psaMasquerades = new HashMap<>();
+  protected final Map<BranchNameKey, PatchSetArgument> psaMasquerades = new HashMap<>();
 
   @Inject
   protected TaskConfigFactory(
@@ -66,11 +66,11 @@ public class TaskConfigFactory {
     psaMasquerades.put(psa.change.getDest(), psa);
   }
 
-  protected Branch.NameKey getRootBranch() {
-    return new Branch.NameKey(allProjects, "refs/meta/config");
+  protected BranchNameKey getRootBranch() {
+    return BranchNameKey.create(allProjects, "refs/meta/config");
   }
 
-  public TaskConfig getTaskConfig(Branch.NameKey branch, String fileName, boolean isTrusted)
+  public TaskConfig getTaskConfig(BranchNameKey branch, String fileName, boolean isTrusted)
       throws ConfigInvalidException, IOException {
     PatchSetArgument psa = psaMasquerades.get(branch);
     boolean visible = true; // invisible psas are filtered out by commandline
@@ -78,10 +78,10 @@ public class TaskConfigFactory {
       visible = canRead(branch);
     } else {
       isTrusted = false;
-      branch = new Branch.NameKey(psa.change.getProject(), psa.patchSet.getId().toRefName());
+      branch = BranchNameKey.create(psa.change.getProject(), psa.patchSet.refName());
     }
 
-    Project.NameKey project = branch.getParentKey();
+    Project.NameKey project = branch.project();
     TaskConfig cfg = new TaskConfig(branch, fileName, visible, isTrusted);
     try (Repository git = gitMgr.openRepository(project)) {
       cfg.load(project, git);
@@ -94,11 +94,11 @@ public class TaskConfigFactory {
     return cfg;
   }
 
-  public boolean canRead(Branch.NameKey branch) {
+  public boolean canRead(BranchNameKey branch) {
     try {
       PermissionBackend.ForProject permissions =
-          permissionBackend.user(user).project(branch.getParentKey());
-      permissions.ref(branch.get()).check(RefPermission.READ);
+          permissionBackend.user(user).project(branch.project());
+      permissions.ref(branch.branch()).check(RefPermission.READ);
       return true;
     } catch (AuthException | PermissionBackendException e) {
       return false;
