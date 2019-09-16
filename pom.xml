@@ -22,12 +22,12 @@ limitations under the License.
   <groupId>com.googlesource.gerrit.plugins.task</groupId>
   <artifactId>task</artifactId>
   <packaging>jar</packaging>
-  <version>3.0</version>
+  <version>3.0.0</version>
   <name>task</name>
 
   <properties>
     <Gerrit-ApiType>plugin</Gerrit-ApiType>
-    <Gerrit-ApiVersion>3.0.0</Gerrit-ApiVersion>
+    <Gerrit-ApiVersion>${project.version}</Gerrit-ApiVersion>
   </properties>
 
   <build>
