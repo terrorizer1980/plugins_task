@@ -111,8 +111,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     return a;
   }
 
-  protected void addApplicableTasks(List<TaskAttribute> atts, ChangeData c, Node node)
-      throws OrmException {
+  protected void addApplicableTasks(List<TaskAttribute> atts, ChangeData c, Node node) {
     try {
       Task def = node.definition;
       TaskAttribute att = new TaskAttribute(def.name);
@@ -155,7 +154,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
           }
         }
       }
-    } catch (QueryParseException e) {
+    } catch (OrmException | QueryParseException | RuntimeException e) {
       atts.add(invalid()); // bad applicability query
     }
   }
@@ -199,15 +198,15 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       match(c, def.fail);
       match(c, def.pass);
       return true;
-    } catch (OrmException | QueryParseException e) {
+    } catch (OrmException | QueryParseException | RuntimeException e) {
       return false;
     }
   }
 
-  protected Status getStatus(ChangeData c, Task def, TaskAttribute a) throws OrmException {
+  protected Status getStatus(ChangeData c, Task def, TaskAttribute a) {
     try {
       return getStatusWithExceptions(c, def, a);
-    } catch (QueryParseException e) {
+    } catch (OrmException | QueryParseException | RuntimeException e) {
       return Status.INVALID;
     }
   }
@@ -316,7 +315,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
           return true;
         }
         return cqb.parse(query).asMatchable().match(c);
-      } catch (OrmException | QueryParseException e) {
+      } catch (OrmException | QueryParseException | RuntimeException e) {
       }
     }
     return null;
