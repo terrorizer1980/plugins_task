@@ -69,7 +69,8 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   protected final TaskTree definitions;
   protected final ChangeQueryBuilder cqb;
 
-  protected final Map<String, Predicate<ChangeData>> predicatesByQuery = new HashMap<>();
+  protected final Map<String, ThrowingProvider<Predicate<ChangeData>, QueryParseException>>
+      predicatesByQuery = new HashMap<>();
 
   protected Modules.MyOptions options;
 
@@ -293,28 +294,45 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   }
 
   protected boolean match(ChangeData c, String query) throws OrmException, QueryParseException {
-    if (query == null || query.equalsIgnoreCase("true")) {
+    if (query == null) {
       return true;
     }
-    Predicate<ChangeData> pred = predicatesByQuery.get(query);
-    if (pred == null) {
-      pred = cqb.parse(query);
-      predicatesByQuery.put(query, pred);
-    }
-    return pred.asMatchable().match(c);
+    return matchWithExceptions(c, query);
   }
 
   protected Boolean matchOrNull(ChangeData c, String query) {
     if (query != null) {
       try {
-        if (query.equalsIgnoreCase("true")) {
-          return true;
-        }
-        return cqb.parse(query).asMatchable().match(c);
+        return matchWithExceptions(c, query);
       } catch (OrmException | QueryParseException | RuntimeException e) {
       }
     }
     return null;
+  }
+
+  protected boolean matchWithExceptions(ChangeData c, String query)
+      throws QueryParseException, OrmException {
+    if ("true".equalsIgnoreCase(query)) {
+      return true;
+    }
+    return getPredicate(query).asMatchable().match(c);
+  }
+
+  protected Predicate<ChangeData> getPredicate(String query) throws QueryParseException {
+    ThrowingProvider<Predicate<ChangeData>, QueryParseException> predProvider =
+        predicatesByQuery.get(query);
+    if (predProvider != null) {
+      return predProvider.get();
+    }
+    // never seen 'query' before
+    try {
+      Predicate<ChangeData> pred = cqb.parse(query);
+      predicatesByQuery.put(query, new ThrowingProvider.Entry<>(pred));
+      return pred;
+    } catch (QueryParseException e) {
+      predicatesByQuery.put(query, new ThrowingProvider.Thrown<>(e));
+      throw e;
+    }
   }
 
   protected static boolean isAllNull(Object... vals) {
