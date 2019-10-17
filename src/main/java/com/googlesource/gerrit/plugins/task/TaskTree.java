@@ -209,7 +209,7 @@ public class TaskTree {
       }
       Account.Id acct;
       try {
-        acct = accountResolver.resolve(user).asUnique().getAccount().id();
+        acct = accountResolver.resolve(user).asUnique().account().id();
       } catch (UnprocessableEntityException e) {
         throw new ConfigInvalidException("Cannot resolve user: " + user);
       }
