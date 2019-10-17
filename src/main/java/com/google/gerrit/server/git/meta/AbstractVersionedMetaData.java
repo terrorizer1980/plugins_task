@@ -14,7 +14,7 @@
 
 package com.google.gerrit.server.git.meta;
 
-import com.google.gerrit.reviewdb.client.BranchNameKey;
+import com.google.gerrit.entities.BranchNameKey;
 import java.io.IOException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.CommitBuilder;
