@@ -86,16 +86,12 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       for (PatchSetArgument psa : options.patchSetArguments) {
         definitions.masquerade(psa);
       }
-      try {
         return createWithExceptions(c);
-      } catch (OrmException e) {
-        log.atSevere().withCause(e).log("Cannot load tasks for: %s", c);
-      }
     }
     return null;
   }
 
-  protected PluginDefinedInfo createWithExceptions(ChangeData c) throws OrmException {
+  protected PluginDefinedInfo createWithExceptions(ChangeData c) {
     TaskPluginAttribute a = new TaskPluginAttribute();
     try {
       for (Node node : definitions.getRootNodes()) {
