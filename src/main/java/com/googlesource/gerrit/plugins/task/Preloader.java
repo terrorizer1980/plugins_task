@@ -15,7 +15,6 @@
 package com.googlesource.gerrit.plugins.task;
 
 import com.googlesource.gerrit.plugins.task.TaskConfig.Task;
-import java.lang.IllegalAccessException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
