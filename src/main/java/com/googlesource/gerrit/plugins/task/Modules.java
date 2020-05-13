@@ -39,7 +39,8 @@ public class Modules {
 
       bind(DynamicBean.class).annotatedWith(Exports.named(Query.class)).to(MyOptions.class);
       bind(DynamicBean.class).annotatedWith(Exports.named(QueryChanges.class)).to(MyOptions.class);
-      DynamicSet.bind(binder(), WebUiPlugin.class).toInstance(new JavaScriptPlugin("gr-task-plugin.html"));
+      DynamicSet.bind(binder(), WebUiPlugin.class)
+          .toInstance(new JavaScriptPlugin("gr-task-plugin.html"));
     }
   }
 
