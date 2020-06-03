@@ -16,10 +16,8 @@ package com.googlesource.gerrit.plugins.task;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.extensions.common.PluginDefinedInfo;
-import com.google.gerrit.index.query.Predicate;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gerrit.server.query.change.ChangeQueryBuilder;
 import com.google.gerrit.server.query.change.ChangeQueryProcessor;
 import com.google.gerrit.server.query.change.ChangeQueryProcessor.ChangeAttributeFactory;
 import com.google.gwtorm.server.OrmException;
@@ -29,7 +27,6 @@ import com.googlesource.gerrit.plugins.task.TaskTree.Node;
 import com.googlesource.gerrit.plugins.task.cli.PatchSetArgument;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -67,17 +64,14 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   }
 
   protected final TaskTree definitions;
-  protected final ChangeQueryBuilder cqb;
-
-  protected final Map<String, ThrowingProvider<Predicate<ChangeData>, QueryParseException>>
-      predicatesByQuery = new HashMap<>();
+  protected final PredicateCache predicateCache;
 
   protected Modules.MyOptions options;
 
   @Inject
-  public TaskAttributeFactory(TaskTree definitions, ChangeQueryBuilder cqb) {
+  public TaskAttributeFactory(TaskTree definitions, PredicateCache predicateCache) {
     this.definitions = definitions;
-    this.cqb = cqb;
+    this.predicateCache = predicateCache;
   }
 
   @Override
@@ -116,7 +110,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
         att.evaluationMilliSeconds = millis();
       }
 
-      boolean applicable = match(c, def.applicable);
+      boolean applicable = predicateCache.match(c, def.applicable);
       if (!def.isVisible) {
         if (!def.isTrusted || (!applicable && !options.onlyApplicable)) {
           atts.add(unknown());
@@ -139,7 +133,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
               att.applicable = applicable;
             }
             if (def.inProgress != null) {
-              att.inProgress = matchOrNull(c, def.inProgress);
+              att.inProgress = predicateCache.matchOrNull(c, def.inProgress);
             }
             att.hint = getHint(att.status, def);
             att.exported = def.exported;
@@ -191,9 +185,9 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
 
   protected boolean isValidQueries(ChangeData c, Task def) {
     try {
-      match(c, def.inProgress);
-      match(c, def.fail);
-      match(c, def.pass);
+      predicateCache.match(c, def.inProgress);
+      predicateCache.match(c, def.fail);
+      predicateCache.match(c, def.pass);
       return true;
     } catch (OrmException | QueryParseException | RuntimeException e) {
       return false;
@@ -231,7 +225,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     }
 
     if (def.fail != null) {
-      if (match(c, def.fail)) {
+      if (predicateCache.match(c, def.fail)) {
         // A FAIL definition is meant to be a hard blocking criteria
         // (like a CodeReview -2).  Thus, if hard blocked, it is
         // irrelevant what the subtask states, or the PASS criteria are.
@@ -262,7 +256,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       return Status.WAITING;
     }
 
-    if (def.pass != null && !match(c, def.pass)) {
+    if (def.pass != null && !predicateCache.match(c, def.pass)) {
       // Non-leaf tasks with no PASS criteria are supported in order
       // to support "grouping tasks" (tasks with no function aside from
       // organizing tasks).  A task without a PASS criteria, cannot ever
@@ -284,60 +278,18 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     return null;
   }
 
-  protected static boolean isAll(Iterable<TaskAttribute> atts, Status state) {
-    for (TaskAttribute att : atts) {
-      if (att.status != state) {
+  public static boolean isAllNull(Object... vals) {
+    for (Object val : vals) {
+      if (val != null) {
         return false;
       }
     }
     return true;
   }
 
-  protected boolean match(ChangeData c, String query) throws OrmException, QueryParseException {
-    if (query == null) {
-      return true;
-    }
-    return matchWithExceptions(c, query);
-  }
-
-  protected Boolean matchOrNull(ChangeData c, String query) {
-    if (query != null) {
-      try {
-        return matchWithExceptions(c, query);
-      } catch (OrmException | QueryParseException | RuntimeException e) {
-      }
-    }
-    return null;
-  }
-
-  protected boolean matchWithExceptions(ChangeData c, String query)
-      throws QueryParseException, OrmException {
-    if ("true".equalsIgnoreCase(query)) {
-      return true;
-    }
-    return getPredicate(query).asMatchable().match(c);
-  }
-
-  protected Predicate<ChangeData> getPredicate(String query) throws QueryParseException {
-    ThrowingProvider<Predicate<ChangeData>, QueryParseException> predProvider =
-        predicatesByQuery.get(query);
-    if (predProvider != null) {
-      return predProvider.get();
-    }
-    // never seen 'query' before
-    try {
-      Predicate<ChangeData> pred = cqb.parse(query);
-      predicatesByQuery.put(query, new ThrowingProvider.Entry<>(pred));
-      return pred;
-    } catch (QueryParseException e) {
-      predicatesByQuery.put(query, new ThrowingProvider.Thrown<>(e));
-      throw e;
-    }
-  }
-
-  protected static boolean isAllNull(Object... vals) {
-    for (Object val : vals) {
-      if (val != null) {
+  protected static boolean isAll(Iterable<TaskAttribute> atts, Status state) {
+    for (TaskAttribute att : atts) {
+      if (att.status != state) {
         return false;
       }
     }
