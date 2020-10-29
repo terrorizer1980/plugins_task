@@ -15,12 +15,13 @@
 package com.googlesource.gerrit.plugins.task;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.entities.Change;
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.common.PluginDefinedInfo;
 import com.google.gerrit.index.query.Predicate;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.server.DynamicOptions.BeanProvider;
-import com.google.gerrit.server.change.ChangeAttributeFactory;
+import com.google.gerrit.server.change.ChangePluginDefinedInfoFactory;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.query.change.ChangeQueryBuilder;
 import com.google.inject.Inject;
@@ -29,14 +30,14 @@ import com.googlesource.gerrit.plugins.task.TaskTree.Node;
 import com.googlesource.gerrit.plugins.task.cli.PatchSetArgument;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 
-public class TaskAttributeFactory implements ChangeAttributeFactory {
+public class TaskAttributeFactory implements ChangePluginDefinedInfoFactory {
   private static final FluentLogger log = FluentLogger.forEnclosingClass();
-
   public enum Status {
     INVALID,
     UNKNOWN,
@@ -81,15 +82,17 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   }
 
   @Override
-  public PluginDefinedInfo create(ChangeData c, BeanProvider beanProvider, String plugin) {
+  public Map<Change.Id, PluginDefinedInfo> createPluginDefinedInfos(
+          Collection<ChangeData> cds, BeanProvider beanProvider, String plugin) {
+    Map<Change.Id, PluginDefinedInfo> pluginInfosByChange = new HashMap<>();
     options = (Modules.MyOptions) beanProvider.getDynamicBean(plugin);
     if (options.all || options.onlyApplicable || options.onlyInvalid) {
       for (PatchSetArgument psa : options.patchSetArguments) {
         definitions.masquerade(psa);
       }
-      return createWithExceptions(c);
+      cds.forEach(cd -> pluginInfosByChange.put(cd.getId(), createWithExceptions(cd)));
     }
-    return null;
+    return pluginInfosByChange;
   }
 
   protected PluginDefinedInfo createWithExceptions(ChangeData c) {

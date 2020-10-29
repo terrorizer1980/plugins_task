@@ -19,7 +19,7 @@ import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.webui.JavaScriptPlugin;
 import com.google.gerrit.extensions.webui.WebUiPlugin;
 import com.google.gerrit.server.DynamicOptions.DynamicBean;
-import com.google.gerrit.server.change.ChangeAttributeFactory;
+import com.google.gerrit.server.change.ChangePluginDefinedInfoFactory;
 import com.google.gerrit.server.restapi.change.QueryChanges;
 import com.google.gerrit.sshd.commands.Query;
 import com.google.inject.AbstractModule;
@@ -33,7 +33,7 @@ public class Modules {
   public static class Module extends AbstractModule {
     @Override
     protected void configure() {
-      bind(ChangeAttributeFactory.class)
+      bind(ChangePluginDefinedInfoFactory.class)
           .annotatedWith(Exports.named("task"))
           .to(TaskAttributeFactory.class);
 
