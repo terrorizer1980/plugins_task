@@ -14,6 +14,9 @@
 
 package com.googlesource.gerrit.plugins.task;
 
+import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gwtorm.server.OrmException;
 import com.googlesource.gerrit.plugins.task.TaskConfig.Task;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -36,9 +39,17 @@ public class Properties {
   protected boolean expandingNonPropertyFields;
   protected Set<String> expanding;
 
-  public Properties(Task definition, Map<String, String> parentProperties) {
+  public Properties(ChangeData changeData, Task definition, Map<String, String> parentProperties)
+      throws OrmException {
     expanded.putAll(parentProperties);
     expanded.put("_name", definition.name);
+    Change c = changeData.change();
+    expanded.put("_change_number", String.valueOf(c.getId().get()));
+    expanded.put("_change_id", c.getKey().get());
+    expanded.put("_change_project", c.getProject().get());
+    expanded.put("_change_branch", c.getDest().get());
+    expanded.put("_change_status", c.getStatus().toString());
+    expanded.put("_change_topic", c.getTopic());
 
     unexpanded = definition.properties;
     unexpanded.putAll(definition.exported);

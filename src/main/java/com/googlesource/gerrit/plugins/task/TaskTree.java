@@ -145,12 +145,12 @@ public class TaskTree {
     public final Task definition;
 
     public Node(Task definition, List<String> path, Map<String, String> parentProperties)
-        throws ConfigInvalidException {
+        throws ConfigInvalidException, OrmException {
       this.definition = definition;
       this.path.addAll(path);
       this.path.add(definition.name);
       Preloader.preload(definition);
-      new Properties(definition, parentProperties);
+      new Properties(getChangeData(), definition, parentProperties);
       properties = definition.properties;
     }
 

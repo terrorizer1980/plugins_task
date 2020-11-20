@@ -454,7 +454,7 @@
                   "root" : "Root Properties"
                },
                "hasPass" : true,
-               "hint" : "Name(Root Properties)",
+               "hint" : "Name(Root Properties) Change Number(_change3_number) Change Id(_change3_id) Change Project(_change3_project) Change Branch(_change3_branch) Change Status(_change3_status) Change Topic(_change3_topic)",
                "name" : "Root Properties",
                "status" : "FAIL",
                "subTasks" : [
@@ -485,6 +485,13 @@
                            "hasPass" : true,
                            "name" : "Subtask Properties Reset",
                            "status" : "PASS"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "hint" : "Name(_change1_number) Change Number(_change3_number) Change Id(_change3_id) Change Project(_change3_project) Change Branch(_change3_branch) Change Status(_change3_status) Change Topic(_change3_topic)",
+                           "name" : "_change1_number",
+                           "status" : "FAIL"
                         }
                      ]
                   }

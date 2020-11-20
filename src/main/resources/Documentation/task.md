@@ -404,12 +404,24 @@ Example:
 
 Properties
 ----------
-The task plugin supplies the `${_name}` property which may be used anywhere in
-a task definition as a token representing the name of the current task.
+The task plugin supplies the following properties which may be used anywhere in
+a task or tasks-factory definition.
 
-Example:
+```
+    ${_name}            represents the name of the current task
+    ${_change_number}   represents the change number of the current change
+    ${_change_id}       represents the change id of the current change
+    ${_change_project}  represents the project of the current change
+    ${_change_branch}   represents the branch of the current change
+    ${_change_status}   represents the status of the current change
+    ${_change_topic}    represents the topic of the current change
+```
+
+Examples:
 ```
     fail-hint = {$_name} needs to be fixed
+    fail-hint = {$_change_number} with {$_change_status} needs to be fixed
+    fail-hint = {$_change_id} on {$_change_project} and {$_change_branch} needs to be fixed
 ```
 
 Custom properties may be defined on a task using the following syntax:

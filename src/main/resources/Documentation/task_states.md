@@ -134,7 +134,7 @@ states are affected by their own criteria and their subtasks' states.
   set-root-property = root-value
   export-root = ${_name}
   fail = True
-  fail-hint = Name(${_name})
+  fail-hint = Name(${_name}) Change Number(${_change_number}) Change Id(${_change_id}) Change Project(${_change_project}) Change Branch(${_change_branch}) Change Status(${_change_status}) Change Topic(${_change_topic})
   subtask = Subtask Properties
 
 [root "Root Preload"]
@@ -200,6 +200,7 @@ states are affected by their own criteria and their subtasks' states.
   subtask = Subtask Properties Hints
   subtask = Chained ${_name}
   subtask = Subtask Properties Reset
+  subtasks-factory = TaskFactory Properties Hints
 
 [task "Subtask Properties Hints"]
   set-first-property = first-value
@@ -215,6 +216,15 @@ states are affected by their own criteria and their subtasks' states.
   pass = True
   set-first-property = reset-first-value
   fail-hint = first-property(${first-property})
+
+[tasks-factory "TaskFactory Properties Hints"]
+  names-factory = NamesFactory Properties
+  fail-hint = Name(${_name}) Change Number(${_change_number}) Change Id(${_change_id}) Change Project(${_change_project}) Change Branch(${_change_branch}) Change Status(${_change_status}) Change Topic(${_change_topic})
+  fail = True
+
+[names-factory "NamesFactory Properties"]
+  type = change
+  changes = change:_change1_number
 
 [task "Subtask Preload"]
   preload-task = Subtask READY
@@ -825,7 +835,7 @@ The expected output for the above task config looks like:
                   "root" : "Root Properties"
                },
                "hasPass" : true,
-               "hint" : "Name(Root Properties)",
+               "hint" : "Name(Root Properties) Change Number(_change3_number) Change Id(_change3_id) Change Project(_change3_project) Change Branch(_change3_branch) Change Status(_change3_status) Change Topic(_change3_topic)",
                "name" : "Root Properties",
                "status" : "FAIL",
                "subTasks" : [
@@ -852,6 +862,12 @@ The expected output for the above task config looks like:
                            "hasPass" : true,
                            "name" : "Subtask Properties Reset",
                            "status" : "PASS"
+                        },
+                        {
+                           "hasPass" : true,
+                           "hint" : "Name(_change1_number) Change Number(_change3_number) Change Id(_change3_id) Change Project(_change3_project) Change Branch(_change3_branch) Change Status(_change3_status) Change Topic(_change3_topic)",
+                           "name" : "_change1_number",
+                           "status" : "FAIL"
                         }
                      ]
                   }
