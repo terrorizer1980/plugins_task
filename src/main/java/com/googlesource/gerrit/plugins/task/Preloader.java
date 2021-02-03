@@ -38,7 +38,7 @@ public class Preloader {
   protected static void preloadFrom(Task definition, Task preloadFrom) {
     for (Field field : definition.getClass().getFields()) {
       String name = field.getName();
-      if (name.equals("isVisible") || name.equals("isTrusted") || name.equals("config")) {
+      if ("isVisible".equals(name) || "isTrusted".equals(name) || "config".equals(name)) {
         continue;
       }
 
