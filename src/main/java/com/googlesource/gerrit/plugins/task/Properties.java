@@ -14,11 +14,14 @@
 
 package com.googlesource.gerrit.plugins.task;
 
+import com.google.common.collect.Sets;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
+import com.googlesource.gerrit.plugins.task.TaskConfig.NamesFactory;
 import com.googlesource.gerrit.plugins.task.TaskConfig.Task;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +36,7 @@ public class Properties {
   // "${_name}" -> group(1) = "_name"
   protected static final Pattern PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
 
-  protected Task definition;
+  protected Object definition;
   protected Map<String, String> expanded = new HashMap<>();
   protected Map<String, String> unexpanded;
   protected boolean expandingNonPropertyFields;
@@ -65,21 +68,29 @@ public class Properties {
     }
 
     this.definition = definition;
-    expandNonPropertyFields();
+    expandNonPropertyFields(Collections.emptySet());
   }
 
-  protected void expandNonPropertyFields() {
+  public Properties(NamesFactory namesFactory, Map<String, String> properties) throws OrmException {
+    expanded.putAll(properties);
+    definition = namesFactory;
+    expandNonPropertyFields(Sets.newHashSet(TaskConfig.KEY_TYPE));
+  }
+
+  protected void expandNonPropertyFields(Set<String> excludedFields) {
     expandingNonPropertyFields = true;
-    for (Field field : Task.class.getFields()) {
+    for (Field field : definition.getClass().getFields()) {
       try {
-        field.setAccessible(true);
-        Object o = field.get(definition);
-        if (o instanceof String) {
-          field.set(definition, expandLiteral((String) o));
-        } else if (o instanceof List) {
-          @SuppressWarnings("unchecked")
-          List<String> forceCheck = List.class.cast(o);
-          expandInPlace(forceCheck);
+        if (!excludedFields.contains(field.getName())) {
+          field.setAccessible(true);
+          Object o = field.get(definition);
+          if (o instanceof String) {
+            field.set(definition, expandLiteral((String) o));
+          } else if (o instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<String> forceCheck = List.class.cast(o);
+            expandInPlace(forceCheck);
+          }
         }
       } catch (IllegalAccessException e) {
         throw new RuntimeException(e);

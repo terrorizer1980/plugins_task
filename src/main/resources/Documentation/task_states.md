@@ -224,7 +224,7 @@ states are affected by their own criteria and their subtasks' states.
 
 [names-factory "NamesFactory Properties"]
   type = change
-  changes = change:_change1_number
+  changes = change:_change1_number OR change:${_change_number} project:${_change_project} branch:${_change_branch}
 
 [task "Subtask Preload"]
   preload-task = Subtask READY
@@ -291,6 +291,7 @@ states are affected by their own criteria and their subtasks' states.
   name = my a task
   name = my b task
   name = my c task
+  name = my d task Change Number(${_change_number}) Change Id(${_change_id}) Change Project(${_change_project}) Change Branch(${_change_branch}) Change Status(${_change_status}) Change Topic(${_change_topic})
   type = static
 
 [names-factory "names-factory static (empty name list)"]
@@ -815,6 +816,11 @@ The expected output for the above task config looks like:
                   },
                   {
                      "hasPass" : true,
+                     "name" : "my d task Change Number(_change3_number) Change Id(_change3_id) Change Project(_change3_project) Change Branch(_change3_branch) Change Status(_change3_status) Change Topic(_change3_topic)",
+                     "status" : "FAIL"
+                  },
+                  {
+                     "hasPass" : true,
                      "name" : "_change1_number",
                      "status" : "FAIL"
                   },
@@ -862,6 +868,12 @@ The expected output for the above task config looks like:
                            "hasPass" : true,
                            "name" : "Subtask Properties Reset",
                            "status" : "PASS"
+                        },
+                        {
+                           "hasPass" : true,
+                           "hint" : "Name(_change3_number) Change Number(_change3_number) Change Id(_change3_id) Change Project(_change3_project) Change Branch(_change3_branch) Change Status(_change3_status) Change Topic(_change3_topic)",
+                           "name" : "_change3_number",
+                           "status" : "FAIL"
                         },
                         {
                            "hasPass" : true,

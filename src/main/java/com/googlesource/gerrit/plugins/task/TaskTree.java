@@ -209,13 +209,14 @@ public class TaskTree {
       return defs;
     }
 
-    protected List<Task> getTasksFactoryDefinitions() {
+    protected List<Task> getTasksFactoryDefinitions() throws OrmException {
       List<Task> taskList = new ArrayList<>();
       for (String taskFactoryName : definition.subTasksFactories) {
         TasksFactory tasksFactory = definition.config.getTasksFactory(taskFactoryName);
         if (tasksFactory != null) {
           NamesFactory namesFactory = definition.config.getNamesFactory(tasksFactory.namesFactory);
           if (namesFactory != null && namesFactory.type != null) {
+            new Properties(namesFactory, definition.properties);
             switch (NamesFactoryType.getNamesFactoryType(namesFactory.type)) {
               case STATIC:
                 getStaticTypeTasksDefinitions(tasksFactory, namesFactory, taskList);

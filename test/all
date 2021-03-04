@@ -426,6 +426,12 @@
                   {
                      "applicable" : true,
                      "hasPass" : true,
+                     "name" : "my d task Change Number(_change3_number) Change Id(_change3_id) Change Project(_change3_project) Change Branch(_change3_branch) Change Status(_change3_status) Change Topic(_change3_topic)",
+                     "status" : "FAIL"
+                  },
+                  {
+                     "applicable" : true,
+                     "hasPass" : true,
                      "name" : "_change1_number",
                      "status" : "FAIL"
                   },
@@ -485,6 +491,13 @@
                            "hasPass" : true,
                            "name" : "Subtask Properties Reset",
                            "status" : "PASS"
+                        },
+                        {
+                           "applicable" : true,
+                           "hasPass" : true,
+                           "hint" : "Name(_change3_number) Change Number(_change3_number) Change Id(_change3_id) Change Project(_change3_project) Change Branch(_change3_branch) Change Status(_change3_status) Change Topic(_change3_topic)",
+                           "name" : "_change3_number",
+                           "status" : "FAIL"
                         },
                         {
                            "applicable" : true,
