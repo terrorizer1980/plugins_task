@@ -22,7 +22,7 @@ limitations under the License.
   <groupId>com.googlesource.gerrit.plugins.task</groupId>
   <artifactId>task</artifactId>
   <packaging>jar</packaging>
-  <version>3.2.6</version>
+  <version>3.3.1</version>
   <name>task</name>
 
   <properties>
