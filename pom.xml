@@ -22,7 +22,7 @@ limitations under the License.
   <groupId>com.googlesource.gerrit.plugins.task</groupId>
   <artifactId>task</artifactId>
   <packaging>jar</packaging>
-  <version>3.2.0-SNAPSHOT</version>
+  <version>3.2.6</version>
   <name>task</name>
 
   <properties>
@@ -56,15 +56,11 @@ limitations under the License.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.8.0</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
           <encoding>UTF-8</encoding>
-          <fork>true</fork>
-          <compilerArgs>
-            <arg>-XX:MaxPermSize=256m</arg>
-          </compilerArgs>
         </configuration>
       </plugin>
     </plugins>
@@ -82,7 +78,7 @@ limitations under the License.
   <repositories>
     <repository>
       <id>gerrit-api-repository</id>
-      <url>https://gerrit-api.commondatastorage.googleapis.com/snapshot/</url>
+      <url>https://gerrit-api.commondatastorage.googleapis.com/release/</url>
     </repository>
   </repositories>
 </project>
