@@ -106,7 +106,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   protected class AttributeFactory {
     public Node node;
     public MatchCache matchCache;
-    protected Task definition;
+    protected Task task;
     protected TaskAttribute attribute;
 
     protected AttributeFactory(Node node) {
@@ -116,8 +116,8 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     protected AttributeFactory(Node node, MatchCache matchCache) {
       this.node = node;
       this.matchCache = matchCache;
-      this.definition = node.definition;
-      this.attribute = new TaskAttribute(definition.name);
+      this.task = node.task;
+      this.attribute = new TaskAttribute(task.name);
     }
 
     public Optional<TaskAttribute> create() {
@@ -126,15 +126,15 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
           attribute.evaluationMilliSeconds = millis();
         }
 
-        boolean applicable = matchCache.match(definition.applicable);
-        if (!definition.isVisible) {
-          if (!definition.isTrusted || (!applicable && !options.onlyApplicable)) {
+        boolean applicable = matchCache.match(task.applicable);
+        if (!task.isVisible) {
+          if (!task.isTrusted || (!applicable && !options.onlyApplicable)) {
             return Optional.of(unknown());
           }
         }
 
         if (applicable || !options.onlyApplicable) {
-          attribute.hasPass = definition.pass != null || definition.fail != null;
+          attribute.hasPass = task.pass != null || task.fail != null;
           attribute.subTasks = getSubTasks();
           attribute.status = getStatus();
           if (options.onlyInvalid && !isValidQueries()) {
@@ -149,11 +149,11 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
               if (!options.onlyApplicable) {
                 attribute.applicable = applicable;
               }
-              if (definition.inProgress != null) {
-                attribute.inProgress = matchCache.matchOrNull(definition.inProgress);
+              if (task.inProgress != null) {
+                attribute.inProgress = matchCache.matchOrNull(task.inProgress);
               }
-              attribute.hint = getHint(attribute.status, definition);
-              attribute.exported = definition.exported;
+              attribute.hint = getHint(attribute.status, task);
+              attribute.exported = task.exported;
 
               if (options.evaluationTime) {
                 attribute.evaluationMilliSeconds = millis() - attribute.evaluationMilliSeconds;
@@ -169,13 +169,13 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     }
 
     protected Status getStatusWithExceptions() throws OrmException, QueryParseException {
-      if (isAllNull(definition.pass, definition.fail, attribute.subTasks)) {
+      if (isAllNull(task.pass, task.fail, attribute.subTasks)) {
         // A leaf def has no defined subdefs.
         boolean hasDefinedSubtasks =
-            !(definition.subTasks.isEmpty()
-                && definition.subTasksFiles.isEmpty()
-                && definition.subTasksExternals.isEmpty()
-                && definition.subTasksFactories.isEmpty());
+            !(task.subTasks.isEmpty()
+                && task.subTasksFiles.isEmpty()
+                && task.subTasksExternals.isEmpty()
+                && task.subTasksFactories.isEmpty());
         if (hasDefinedSubtasks) {
           // Remove 'Grouping" tasks (tasks with subtasks but no PASS
           // or FAIL criteria) from the output if none of their subtasks
@@ -189,8 +189,8 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
         return Status.INVALID;
       }
 
-      if (definition.fail != null) {
-        if (matchCache.match(definition.fail)) {
+      if (task.fail != null) {
+        if (matchCache.match(task.fail)) {
           // A FAIL definition is meant to be a hard blocking criteria
           // (like a CodeReview -2).  Thus, if hard blocked, it is
           // irrelevant what the subtask states, or the PASS criteria are.
@@ -216,7 +216,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
         return Status.WAITING;
       }
 
-      if (definition.pass != null && !matchCache.match(definition.pass)) {
+      if (task.pass != null && !matchCache.match(task.pass)) {
         // Non-leaf tasks with no PASS criteria are supported in order
         // to support "grouping tasks" (tasks with no function aside from
         // organizing tasks).  A task without a PASS criteria, cannot ever
@@ -254,9 +254,9 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
 
     protected boolean isValidQueries() {
       try {
-        matchCache.match(definition.inProgress);
-        matchCache.match(definition.fail);
-        matchCache.match(definition.pass);
+        matchCache.match(task.inProgress);
+        matchCache.match(task.fail);
+        matchCache.match(task.pass);
         return true;
       } catch (OrmException | QueryParseException | RuntimeException e) {
         return false;

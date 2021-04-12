@@ -142,11 +142,11 @@ public class TaskTree {
   }
 
   public class Node extends NodeList {
-    public final Task definition;
+    public final Task task;
 
     public Node(Task definition, List<String> path, Map<String, String> parentProperties)
         throws ConfigInvalidException, OrmException {
-      this.definition = definition;
+      this.task = definition;
       this.path.addAll(path);
       this.path.add(definition.name);
       Preloader.preload(definition);
@@ -170,9 +170,9 @@ public class TaskTree {
     }
 
     protected void addSubFileDefinitions() {
-      for (String file : definition.subTasksFiles) {
+      for (String file : task.subTasksFiles) {
         try {
-          addSubDefinitions(getTaskDefinitions(definition.config.getBranch(), file));
+          addSubDefinitions(getTaskDefinitions(task.config.getBranch(), file));
         } catch (ConfigInvalidException | IOException e) {
           nodes.add(null);
         }
@@ -180,9 +180,9 @@ public class TaskTree {
     }
 
     protected void addExternalDefinitions() throws OrmException {
-      for (String external : definition.subTasksExternals) {
+      for (String external : task.subTasksExternals) {
         try {
-          External ext = definition.config.getExternal(external);
+          External ext = task.config.getExternal(external);
           if (ext == null) {
             nodes.add(null);
           } else {
@@ -196,9 +196,9 @@ public class TaskTree {
 
     protected List<Task> getSubDefinitions() {
       List<Task> defs = new ArrayList<>();
-      for (String name : definition.subTasks) {
+      for (String name : task.subTasks) {
         try {
-          Task def = definition.config.getTaskOptional(name);
+          Task def = task.config.getTaskOptional(name);
           if (def != null) {
             defs.add(def);
           }
@@ -211,12 +211,12 @@ public class TaskTree {
 
     protected List<Task> getTasksFactoryDefinitions() throws OrmException {
       List<Task> taskList = new ArrayList<>();
-      for (String taskFactoryName : definition.subTasksFactories) {
-        TasksFactory tasksFactory = definition.config.getTasksFactory(taskFactoryName);
+      for (String taskFactoryName : task.subTasksFactories) {
+        TasksFactory tasksFactory = task.config.getTasksFactory(taskFactoryName);
         if (tasksFactory != null) {
-          NamesFactory namesFactory = definition.config.getNamesFactory(tasksFactory.namesFactory);
+          NamesFactory namesFactory = task.config.getNamesFactory(tasksFactory.namesFactory);
           if (namesFactory != null && namesFactory.type != null) {
-            new Properties(namesFactory, definition.properties);
+            new Properties(namesFactory, task.properties);
             switch (NamesFactoryType.getNamesFactoryType(namesFactory.type)) {
               case STATIC:
                 getStaticTypeTasksDefinitions(tasksFactory, namesFactory, taskList);
@@ -235,7 +235,7 @@ public class TaskTree {
     protected void getStaticTypeTasksDefinitions(
         TasksFactory tasksFactory, NamesFactory namesFactory, List<Task> taskList) {
       for (String name : namesFactory.names) {
-        taskList.add(definition.config.createTask(tasksFactory, name));
+        taskList.add(task.config.createTask(tasksFactory, name));
       }
     }
 
@@ -248,7 +248,7 @@ public class TaskTree {
                   .get()
                   .query(changeQueryBuilderProvider.get().parse(namesFactory.changes)).entities();
           for (ChangeData changeData : changeDataList) {
-            taskList.add(definition.config.createTask(tasksFactory, changeData.getId().toString()));
+            taskList.add(task.config.createTask(tasksFactory, changeData.getId().toString()));
           }
           return;
         }
@@ -267,7 +267,7 @@ public class TaskTree {
     protected List<Task> getTaskDefinitions(Branch.NameKey branch, String file)
         throws ConfigInvalidException, IOException {
       return taskFactory
-          .getTaskConfig(branch, resolveTaskFileName(file), definition.isTrusted)
+          .getTaskConfig(branch, resolveTaskFileName(file), task.isTrusted)
           .getTasks();
     }
 
