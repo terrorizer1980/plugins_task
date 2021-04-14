@@ -141,6 +141,9 @@ states are affected by their own criteria and their subtasks' states.
    preload-task = Subtask FAIL
    subtask = Subtask Preload
 
+[root "Root INVALID Preload"]
+  preload-task = missing
+
 [root "INVALIDS"]
   subtasks-file = invalids.config
 
@@ -958,6 +961,10 @@ The expected output for the above task config looks like:
                      ]
                   }
                ]
+            },
+            {
+               "name" : "UNKNOWN",
+               "status" : "INVALID"
             },
             {
                "hasPass" : false,

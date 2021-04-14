@@ -25,6 +25,10 @@
                ]
             },
             {
+               "name" : "UNKNOWN",
+               "status" : "INVALID"
+            },
+            {
                "hasPass" : false,
                "name" : "INVALIDS",
                "status" : "WAITING",

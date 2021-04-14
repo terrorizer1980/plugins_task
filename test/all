@@ -598,6 +598,10 @@
                ]
             },
             {
+               "name" : "UNKNOWN",
+               "status" : "INVALID"
+            },
+            {
                "applicable" : true,
                "hasPass" : false,
                "name" : "INVALIDS",

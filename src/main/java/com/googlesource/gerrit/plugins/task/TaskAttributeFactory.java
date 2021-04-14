@@ -91,7 +91,11 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     TaskPluginAttribute a = new TaskPluginAttribute();
     try {
       for (Node node : definitions.getRootNodes(c)) {
-        new AttributeFactory(node).create().ifPresent(t -> a.roots.add(t));
+        if (node == null) {
+          a.roots.add(invalid());
+        } else {
+          new AttributeFactory(node).create().ifPresent(t -> a.roots.add(t));
+        }
       }
     } catch (ConfigInvalidException | IOException e) {
       a.roots.add(invalid());
