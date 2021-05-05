@@ -65,7 +65,8 @@
     },
 
     _getTaskDescription(task) {
-      return task.hint || task.name;
+      let inProgress = task.in_progress ? " (IN PROGRESS)" : "";
+      return (task.hint || task.name) + inProgress;
     },
 
     _computeMessage(task) {
