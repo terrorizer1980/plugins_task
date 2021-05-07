@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Usage:
-# All-Users.git - refs/users/self must already exist
 # All-Projects.git - must have 'Push' rights on refs/meta/config
 
 # ---- TEST RESULTS ----
@@ -44,14 +43,18 @@ install_changeid_hook() { # repo
     chmod +x "$hook"
 }
 
-setup_repo() { # repo remote ref
-    local repo=$1 remote=$2 ref=$3
+setup_repo() { # repo remote ref [--initial-commit]
+    local repo=$1 remote=$2 ref=$3 init=$4
     git init "$repo"
     (
         cd "$repo"
         install_changeid_hook "$repo"
         git fetch "$remote" "$ref"
-        git checkout FETCH_HEAD
+        if ! git checkout FETCH_HEAD ; then
+            if [ "$init" = "--initial-commit" ] ; then
+                git commit --allow-empty -a -m "Initial Commit"
+            fi
+        fi
     )
 }
 
@@ -131,7 +134,7 @@ REF_USERS=refs/users/self
 
 mkdir -p "$OUT"
 q_setup setup_repo "$ALL" "$REMOTE_ALL" "$REF_ALL"
-q_setup setup_repo "$USERS" "$REMOTE_USERS" "$REF_USERS"
+q_setup setup_repo "$USERS" "$REMOTE_USERS" "$REF_USERS" --initial-commit
 
 mkdir -p "$ALL_TASKS" "$USER_TASKS"
 
