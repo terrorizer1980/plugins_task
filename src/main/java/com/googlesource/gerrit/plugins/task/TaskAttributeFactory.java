@@ -69,7 +69,8 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   protected final TaskTree definitions;
   protected final ChangeQueryBuilder cqb;
 
-  protected final Map<String, Predicate<ChangeData>> predicatesByQuery = new HashMap<>();
+  protected final Map<String, ThrowingProvider<Predicate<ChangeData>, QueryParseException>>
+      predicatesByQuery = new HashMap<>();
 
   protected Modules.MyOptions options;
 
@@ -86,16 +87,12 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       for (PatchSetArgument psa : options.patchSetArguments) {
         definitions.masquerade(psa);
       }
-      try {
         return createWithExceptions(c);
-      } catch (OrmException e) {
-        log.atSevere().withCause(e).log("Cannot load tasks for: %s", c);
-      }
     }
     return null;
   }
 
-  protected PluginDefinedInfo createWithExceptions(ChangeData c) throws OrmException {
+  protected PluginDefinedInfo createWithExceptions(ChangeData c) {
     TaskPluginAttribute a = new TaskPluginAttribute();
     try {
       for (Node node : definitions.getRootNodes()) {
@@ -111,8 +108,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
     return a;
   }
 
-  protected void addApplicableTasks(List<TaskAttribute> atts, ChangeData c, Node node)
-      throws OrmException {
+  protected void addApplicableTasks(List<TaskAttribute> atts, ChangeData c, Node node) {
     try {
       Task def = node.definition;
       TaskAttribute att = new TaskAttribute(def.name);
@@ -155,7 +151,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
           }
         }
       }
-    } catch (QueryParseException e) {
+    } catch (OrmException | QueryParseException | RuntimeException e) {
       atts.add(invalid()); // bad applicability query
     }
   }
@@ -199,15 +195,15 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       match(c, def.fail);
       match(c, def.pass);
       return true;
-    } catch (OrmException | QueryParseException e) {
+    } catch (OrmException | QueryParseException | RuntimeException e) {
       return false;
     }
   }
 
-  protected Status getStatus(ChangeData c, Task def, TaskAttribute a) throws OrmException {
+  protected Status getStatus(ChangeData c, Task def, TaskAttribute a) {
     try {
       return getStatusWithExceptions(c, def, a);
-    } catch (QueryParseException e) {
+    } catch (OrmException | QueryParseException | RuntimeException e) {
       return Status.INVALID;
     }
   }
@@ -219,7 +215,8 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       boolean hasDefinedSubtasks =
           !(def.subTasks.isEmpty()
               && def.subTasksFiles.isEmpty()
-              && def.subTasksExternals.isEmpty());
+              && def.subTasksExternals.isEmpty()
+              && def.subTasksFactories.isEmpty());
       if (hasDefinedSubtasks) {
         // Remove 'Grouping" tasks (tasks with subtasks but no PASS
         // or FAIL criteria) from the output if none of their subtasks
@@ -297,28 +294,45 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
   }
 
   protected boolean match(ChangeData c, String query) throws OrmException, QueryParseException {
-    if (query == null || query.equalsIgnoreCase("true")) {
+    if (query == null) {
       return true;
     }
-    Predicate<ChangeData> pred = predicatesByQuery.get(query);
-    if (pred == null) {
-      pred = cqb.parse(query);
-      predicatesByQuery.put(query, pred);
-    }
-    return pred.asMatchable().match(c);
+    return matchWithExceptions(c, query);
   }
 
   protected Boolean matchOrNull(ChangeData c, String query) {
     if (query != null) {
       try {
-        if (query.equalsIgnoreCase("true")) {
-          return true;
-        }
-        return cqb.parse(query).asMatchable().match(c);
-      } catch (OrmException | QueryParseException e) {
+        return matchWithExceptions(c, query);
+      } catch (OrmException | QueryParseException | RuntimeException e) {
       }
     }
     return null;
+  }
+
+  protected boolean matchWithExceptions(ChangeData c, String query)
+      throws QueryParseException, OrmException {
+    if ("true".equalsIgnoreCase(query)) {
+      return true;
+    }
+    return getPredicate(query).asMatchable().match(c);
+  }
+
+  protected Predicate<ChangeData> getPredicate(String query) throws QueryParseException {
+    ThrowingProvider<Predicate<ChangeData>, QueryParseException> predProvider =
+        predicatesByQuery.get(query);
+    if (predProvider != null) {
+      return predProvider.get();
+    }
+    // never seen 'query' before
+    try {
+      Predicate<ChangeData> pred = cqb.parse(query);
+      predicatesByQuery.put(query, new ThrowingProvider.Entry<>(pred));
+      return pred;
+    } catch (QueryParseException e) {
+      predicatesByQuery.put(query, new ThrowingProvider.Thrown<>(e));
+      throw e;
+    }
   }
 
   protected static boolean isAllNull(Object... vals) {

@@ -103,6 +103,18 @@ states are affected by their own criteria and their subtasks' states.
   subtasks-external = user special
   subtasks-external = file missing
 
+[root "Root tasks-factory"]
+  subtasks-factory = tasks-factory static
+  subtasks-factory = tasks-factory change
+
+[root "Root tasks-factory static (empty name)"]
+  subtasks-factory = tasks-factory static (empty name)
+# Grouping task since it has no pass criteria, not output since it has no subtasks
+
+[root "Root tasks-factory static (empty name PASS)"]
+  pass = True
+  subtasks-factory = tasks-factory static (empty name)
+
 [root "Root Properties"]
   set-root-property = root-value
   export-root = ${_name}
@@ -128,6 +140,18 @@ states are affected by their own criteria and their subtasks' states.
 [root "NA INVALIDS"]
   applicable = NOT is:open # Assumes test query is "is:open"
   subtasks-file = invalids.config
+
+[tasks-factory "tasks-factory static"]
+  names-factory = names-factory static list
+  fail = True
+
+[tasks-factory "tasks-factory static (empty name)"]
+  names-factory = names-factory static (empty name list)
+  fail = True
+
+[tasks-factory "tasks-factory change"]
+  names-factory = names-factory change list
+  fail = True
 
 [task "Subtask APPLICABLE"]
   applicable = is:open
@@ -237,6 +261,20 @@ states are affected by their own criteria and their subtasks' states.
 [external "file missing"]
   user = testuser
   file = missing
+
+[names-factory "names-factory static list"]
+  name = my a task
+  name = my b task
+  name = my c task
+  type = static
+
+[names-factory "names-factory static (empty name list)"]
+  type = static
+
+[names-factory "names-factory change list"]
+  changes = change:1 OR change:2
+  type = change
+
 ```
 
 `task/common.config` file in project `All-Projects` on ref `refs/meta/config`.
@@ -303,6 +341,85 @@ states are affected by their own criteria and their subtasks' states.
   set-A = ${B}
   set-B = ${A}
   fail = True
+
+[task "task (tasks-factory missing)"]
+  subtasks-factory = missing
+
+[task "task (names-factory type missing)"]
+  subtasks-factory = tasks-factory (names-factory type missing)
+
+[task "task (names-factory type INVALID)"]
+  subtasks-factory = tasks-factory (names-factory type INVALID)
+
+[task "task (names-factory duplicate)"]
+  subtasks-factory = tasks-factory (names-factory duplicate)
+
+[task "task (names-factory changes type missing)"]
+  subtasks-factory = tasks-factory change (names-factory type missing)
+
+[task "task (names-factory changes missing)"]
+  subtasks-factory = tasks-factory change (names-factory changes missing)
+
+[task "task (names-factory changes invalid)"]
+  subtasks-factory = tasks-factory change (names-factory changes invalid)
+
+[task "task (tasks-factory changes loop)"]
+  subtasks-factory = tasks-factory change loop
+
+[tasks-factory "tasks-factory (names-factory type missing)"]
+  names-factory = names-factory (type missing)
+  fail = True
+
+[tasks-factory "tasks-factory (names-factory type INVALID)"]
+  names-factory = name-factory (type INVALID)
+
+[tasks-factory "tasks-factory (names-factory duplicate)"]
+  names-factory = names-factory duplicate
+  fail = True
+
+[tasks-factory "tasks-factory change (names-factory type missing)"]
+  names-factory = names-factory change list (type missing)
+  fail = True
+
+[tasks-factory "tasks-factory change (names-factory changes missing)"]
+  names-factory = names-factory change list (changes missing)
+  fail = True
+
+[tasks-factory "tasks-factory change (names-factory changes invalid)"]
+  names-factory = names-factory change list (changes invalid)
+  fail = True
+
+[tasks-factory "tasks-factory change loop"]
+  names-factory = names-factory change constant
+  subtask = task (tasks-factory changes loop)
+  fail = true
+
+[names-factory "names-factory (type missing)"]
+  name = no type test
+
+[names-factory "names-factory change list (type missing)"]
+  changes = change:1 OR change:2
+
+[names-factory "names-factory (type INVALID)"]
+  name = invalid type test
+  type = invalid
+
+[names-factory "names-factory duplicate"]
+  name = duplicate
+  name = duplicate
+  type = static
+
+[names-factory "names-factory change list (changes missing)"]
+  type = change
+
+[names-factory "names-factory change list (changes invalid)"]
+  change = change:invalidChange
+  type = change
+
+[names-factory "names-factory change constant"]
+  changes = change:1 OR change:2
+  type = change
+
 ```
 
 `task/special.config` file in project `All-Users` on ref `refs/users/self`.
@@ -616,6 +733,43 @@ The expected output for the above task config looks like:
                ]
             },
             {
+               "hasPass" : false,
+               "name" : "Root tasks-factory",
+               "status" : "WAITING",
+               "subTasks" : [
+                  {
+                     "hasPass" : true,
+                     "name" : "my a task",
+                     "status" : "FAIL"
+                  },
+                  {
+                     "hasPass" : true,
+                     "name" : "my b task",
+                     "status" : "FAIL"
+                  },
+                  {
+                     "hasPass" : true,
+                     "name" : "my c task",
+                     "status" : "FAIL"
+                  },
+                  {
+                     "hasPass" : true,
+                     "name" : "1",
+                     "status" : "FAIL"
+                  },
+                  {
+                     "hasPass" : true,
+                     "name" : "2",
+                     "status" : "FAIL"
+                  }
+               ]
+            },
+            {
+               "hasPass" : true,
+               "name" : "Root tasks-factory static (empty name PASS)",
+               "status" : "PASS"
+            },
+            {
                "exported" : {
                   "root" : "Root Properties"
                },
@@ -828,6 +982,117 @@ The expected output for the above task config looks like:
                   {
                      "name" : "UNKNOWN",
                      "status" : "INVALID"
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "task (tasks-factory missing)",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "task (names-factory type missing)",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "task (names-factory type INVALID)",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "task (names-factory duplicate)",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "hasPass" : true,
+                           "name" : "duplicate",
+                           "status" : "FAIL"
+                        },
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "task (names-factory changes type missing)",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "task (names-factory changes missing)",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "task (names-factory changes invalid)",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "name" : "UNKNOWN",
+                           "status" : "INVALID"
+                        }
+                     ]
+                  },
+                  {
+                     "hasPass" : false,
+                     "name" : "task (tasks-factory changes loop)",
+                     "status" : "WAITING",
+                     "subTasks" : [
+                        {
+                           "hasPass" : true,
+                           "name" : "1",
+                           "status" : "FAIL",
+                           "subTasks" : [
+                              {
+                                 "name" : "UNKNOWN",
+                                 "status" : "INVALID"
+                              }
+                           ]
+                        },
+                        {
+                           "hasPass" : true,
+                           "name" : "2",
+                           "status" : "FAIL",
+                           "subTasks" : [
+                              {
+                                 "name" : "UNKNOWN",
+                                 "status" : "INVALID"
+                              }
+                           ]
+                        }
+                     ]
                   }
                ]
             }

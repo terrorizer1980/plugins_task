@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.task;
 
+import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.RefNames;
@@ -21,10 +23,17 @@ import com.google.gerrit.server.AnonymousUser;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.AccountResolver;
 import com.google.gerrit.server.config.AllUsersNameProvider;
+import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.query.change.ChangeQueryBuilder;
+import com.google.gerrit.server.query.change.ChangeQueryProcessor;
 import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.googlesource.gerrit.plugins.task.TaskConfig.External;
+import com.googlesource.gerrit.plugins.task.TaskConfig.NamesFactory;
+import com.googlesource.gerrit.plugins.task.TaskConfig.NamesFactoryType;
 import com.googlesource.gerrit.plugins.task.TaskConfig.Task;
+import com.googlesource.gerrit.plugins.task.TaskConfig.TasksFactory;
 import com.googlesource.gerrit.plugins.task.cli.PatchSetArgument;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -45,6 +54,7 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
  * lazily loaded tree, and much of the tree validity is enforced at this layer.
  */
 public class TaskTree {
+  private static final FluentLogger log = FluentLogger.forEnclosingClass();
   protected static final String TASK_DIR = "task";
 
   protected final AccountResolver accountResolver;
@@ -52,6 +62,8 @@ public class TaskTree {
   protected final CurrentUser user;
   protected final TaskConfigFactory taskFactory;
   protected final Root root = new Root();
+  protected final Provider<ChangeQueryBuilder> changeQueryBuilderProvider;
+  protected final Provider<ChangeQueryProcessor> changeQueryProcessorProvider;
 
   @Inject
   public TaskTree(
@@ -59,11 +71,15 @@ public class TaskTree {
       AllUsersNameProvider allUsers,
       AnonymousUser anonymousUser,
       CurrentUser user,
-      TaskConfigFactory taskFactory) {
+      TaskConfigFactory taskFactory,
+      Provider<ChangeQueryBuilder> changeQueryBuilderProvider,
+      Provider<ChangeQueryProcessor> changeQueryProcessorProvider) {
     this.accountResolver = accountResolver;
     this.allUsers = allUsers;
     this.user = user != null ? user : anonymousUser;
     this.taskFactory = taskFactory;
+    this.changeQueryProcessorProvider = changeQueryProcessorProvider;
+    this.changeQueryBuilderProvider = changeQueryBuilderProvider;
   }
 
   public void masquerade(PatchSetArgument psa) {
@@ -131,6 +147,7 @@ public class TaskTree {
 
     protected void addSubDefinitions() throws OrmException {
       addSubDefinitions(getSubDefinitions());
+      addSubDefinitions(getTasksFactoryDefinitions());
       addSubFileDefinitions();
       addExternalDefinitions();
     }
@@ -142,7 +159,7 @@ public class TaskTree {
     protected void addSubFileDefinitions() {
       for (String file : definition.subTasksFiles) {
         try {
-          addSubDefinitions(getTasks(definition.config.getBranch(), file));
+          addSubDefinitions(getTaskDefinitions(definition.config.getBranch(), file));
         } catch (ConfigInvalidException | IOException e) {
           nodes.add(null);
         }
@@ -179,12 +196,61 @@ public class TaskTree {
       return defs;
     }
 
-    protected List<Task> getTaskDefinitions(External external)
-        throws ConfigInvalidException, IOException, OrmException {
-      return getTasks(resolveUserBranch(external.user), external.file);
+    protected List<Task> getTasksFactoryDefinitions() {
+      List<Task> taskList = new ArrayList<>();
+      for (String taskFactoryName : definition.subTasksFactories) {
+        TasksFactory tasksFactory = definition.config.getTasksFactory(taskFactoryName);
+        if (tasksFactory != null) {
+          NamesFactory namesFactory = definition.config.getNamesFactory(tasksFactory.namesFactory);
+          if (namesFactory != null && namesFactory.type != null) {
+            switch (NamesFactoryType.getNamesFactoryType(namesFactory.type)) {
+              case STATIC:
+                getStaticTypeTasksDefinitions(tasksFactory, namesFactory, taskList);
+                continue;
+              case CHANGE:
+                getChangesTypeTaskDefinitions(tasksFactory, namesFactory, taskList);
+                continue;
+            }
+          }
+        }
+        taskList.add(null);
+      }
+      return taskList;
     }
 
-    protected List<Task> getTasks(Branch.NameKey branch, String file)
+    protected void getStaticTypeTasksDefinitions(
+        TasksFactory tasksFactory, NamesFactory namesFactory, List<Task> taskList) {
+      for (String name : namesFactory.names) {
+        taskList.add(definition.config.createTask(tasksFactory, name));
+      }
+    }
+
+    protected void getChangesTypeTaskDefinitions(
+        TasksFactory tasksFactory, NamesFactory namesFactory, List<Task> taskList) {
+      try {
+        if (namesFactory.changes != null) {
+          List<ChangeData> changeDataList =
+              changeQueryProcessorProvider
+                  .get()
+                  .query(changeQueryBuilderProvider.get().parse(namesFactory.changes)).entities();
+          for (ChangeData changeData : changeDataList) {
+            taskList.add(definition.config.createTask(tasksFactory, changeData.getId().toString()));
+          }
+          return;
+        }
+      } catch (OrmException e) {
+        log.atSevere().withCause(e).log("ERROR: running changes query: " + namesFactory.changes);
+      } catch (QueryParseException e) {
+      }
+      taskList.add(null);
+    }
+
+    protected List<Task> getTaskDefinitions(External external)
+        throws ConfigInvalidException, IOException, OrmException {
+      return getTaskDefinitions(resolveUserBranch(external.user), external.file);
+    }
+
+    protected List<Task> getTaskDefinitions(Branch.NameKey branch, String file)
         throws ConfigInvalidException, IOException {
       return taskFactory
           .getTaskConfig(branch, resolveTaskFileName(file), definition.isTrusted)
