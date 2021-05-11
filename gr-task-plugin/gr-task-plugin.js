@@ -39,6 +39,22 @@
         notify: true,
         value() { return []; },
       },
+
+      _show_all: {
+        type: String,
+        notify: true,
+        value: 'false',
+      },
+
+      _expand_all: {
+        type: Boolean,
+        notify: true,
+        value: true,
+      },
+    },
+
+    _is_show_all(show_all) {
+      return show_all === 'true';
     },
 
     attached() {
@@ -64,45 +80,69 @@
       });
     },
 
-    _getTaskDescription(task) {
-      let inProgress = task.in_progress ? " (IN PROGRESS)" : "";
-      return (task.hint || task.name) + inProgress;
-    },
-
-    _computeMessage(task) {
-      switch (task.status) {
-        case 'FAIL':
-        case 'READY':
-        case 'INVALID':
-          return this._getTaskDescription(task);
-      }
-    },
-
     _computeIcon(task) {
       const icon = {};
       switch (task.status) {
         case 'FAIL':
           icon.id = 'gr-icons:close';
           icon.color = 'red';
-          icon.tooltip = 'Blocked';
+          icon.tooltip = 'Failed';
           break;
         case 'READY':
+          icon.id = 'gr-icons:rebase';
+          icon.color = 'green';
+          icon.tooltip = 'Ready';
+          break;
+        case 'INVALID':
+          icon.id = 'gr-icons:abandon';
+          icon.color = 'red';
+          icon.tooltip = 'Invalid';
+          break;
+        case 'WAITING':
+          icon.id = 'gr-icons:side-by-side';
+          icon.color = 'red';
+          icon.tooltip = 'Waiting';
+          break;
+        case 'PASS':
           icon.id = 'gr-icons:check';
           icon.color = 'green';
-          icon.tooltip = 'Needs';
+          icon.tooltip = 'Passed';
           break;
       }
       return icon;
     },
 
+    _computeShowOnNeedsAndBlockedFilter(task) {
+      switch (task.status) {
+        case 'FAIL':
+        case 'READY':
+        case 'INVALID':
+          return true;
+      }
+      return false;
+    },
+
     _addTasks(tasks) { // rename to process, remove DOM bits
       if (!tasks) return [];
       tasks.forEach(task => {
-        task.message = this._computeMessage(task);
+        task.message = task.hint || task.name;
         task.icon = this._computeIcon(task);
+        task.showOnFilter = this._computeShowOnNeedsAndBlockedFilter(task);
         this._addTasks(task.sub_tasks);
       });
       return tasks;
+    },
+
+    _show_all_tap() {
+      this._show_all = 'true';
+    },
+
+    _needs_and_blocked_tap() {
+      this._show_all = 'false';
+    },
+
+    _switch_expand() {
+      this._expand_all = !this._expand_all;
     },
   });
 })();
