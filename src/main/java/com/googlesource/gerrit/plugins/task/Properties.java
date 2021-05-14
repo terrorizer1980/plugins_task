@@ -34,14 +34,11 @@ import java.util.regex.Pattern;
 
 /** Use to expand properties like ${_name} for a Task Definition. */
 public class Properties {
-  // "${_name}" -> group(1) = "_name"
-  protected static final Pattern PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
-
   protected Object definition;
   protected Map<String, String> expanded = new HashMap<>();
   protected Map<String, String> unexpanded;
-  protected boolean expandingNonPropertyFields;
   protected Set<String> expanding;
+  protected Expander recursiveExpander;
 
   public Properties(ChangeData changeData, Task definition, Map<String, String> parentProperties)
       throws OrmException {
@@ -57,6 +54,14 @@ public class Properties {
 
     unexpanded = definition.properties;
     unexpanded.putAll(definition.exported);
+    recursiveExpander =
+        new Expander(expanded) {
+          @Override
+          protected String getValueForName(String name) {
+            expandProperty(name); // recursive call
+            return super.getValueForName(name);
+          }
+        };
     expandAllUnexpanded();
     definition.properties = expanded;
     for (String property : definition.exported.keySet()) {
@@ -67,25 +72,25 @@ public class Properties {
     expandNonPropertyFields(Collections.emptySet());
   }
 
-  public Properties(NamesFactory namesFactory, Map<String, String> properties) throws OrmException {
+  public Properties(NamesFactory namesFactory, Map<String, String> properties) {
     expanded.putAll(properties);
     definition = namesFactory;
     expandNonPropertyFields(Sets.newHashSet(TaskConfig.KEY_TYPE));
   }
 
   protected void expandNonPropertyFields(Set<String> excludedFields) {
-    expandingNonPropertyFields = true;
+    Expander fieldExpander = new Expander(expanded);
     for (Field field : definition.getClass().getFields()) {
       try {
         if (!excludedFields.contains(field.getName())) {
           field.setAccessible(true);
           Object o = field.get(definition);
           if (o instanceof String) {
-            field.set(definition, expandLiteral((String) o));
+            field.set(definition, fieldExpander.expandText((String) o));
           } else if (o instanceof List) {
             @SuppressWarnings("unchecked")
             List<String> forceCheck = List.class.cast(o);
-            expandInPlace(forceCheck);
+            fieldExpander.expandElements(forceCheck);
           }
         }
       } catch (IllegalAccessException e) {
@@ -110,7 +115,7 @@ public class Properties {
     }
     String value = unexpanded.remove(property);
     if (value != null) {
-      expanded.put(property, expandLiteral(value));
+      expanded.put(property, recursiveExpander.expandText(value));
     }
   }
 
@@ -122,32 +127,58 @@ public class Properties {
     }
   }
 
-  protected void expandInPlace(List<String> list) {
-    if (list != null) {
-      for (ListIterator<String> it = list.listIterator(); it.hasNext(); ) {
-        it.set(expandLiteral(it.next()));
+  /**
+   * Use to expand properties like ${property} in Strings into their values.
+   *
+   * <p>Given some property name/value asssociations defined like this:
+   *
+   * <p><code>
+   * valueByName.put("animal", "fox");
+   * valueByName.put("bar", "foo");
+   * valueByName.put("obstacle", "fence");
+   * </code>
+   *
+   * <p>a String like: <code>"The brown ${animal} jumped over the ${obstacle}."</code>
+   *
+   * <p>will expand to: <code>"The brown fox jumped over the fence."</code>
+   */
+  protected static class Expander {
+    // "${_name}" -> group(1) = "_name"
+    protected static final Pattern PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
+
+    protected final Map<String, String> valueByName;
+
+    public Expander(Map<String, String> valueByName) {
+      this.valueByName = valueByName;
+    }
+
+    /** Expand all properties in the Strings in the List */
+    public void expandElements(List<String> list) {
+      if (list != null) {
+        for (ListIterator<String> it = list.listIterator(); it.hasNext(); ) {
+          it.set(expandText(it.next()));
+        }
       }
     }
-  }
 
-  protected String expandLiteral(String literal) {
-    if (literal == null) {
-      return null;
+    /** Expand all properties (${property_name} -> property_value) in the given text */
+    public String expandText(String text) {
+      if (text == null) {
+        return null;
+      }
+      StringBuffer out = new StringBuffer();
+      Matcher m = PATTERN.matcher(text);
+      while (m.find()) {
+        m.appendReplacement(out, Matcher.quoteReplacement(getValueForName(m.group(1))));
+      }
+      m.appendTail(out);
+      return out.toString();
     }
-    StringBuffer out = new StringBuffer();
-    Matcher m = PATTERN.matcher(literal);
-    while (m.find()) {
-      m.appendReplacement(out, Matcher.quoteReplacement(getExpandedValue(m.group(1))));
-    }
-    m.appendTail(out);
-    return out.toString();
-  }
 
-  protected String getExpandedValue(String property) {
-    if (!expandingNonPropertyFields) {
-      expandProperty(property); // recursive call
+    /** Get the replacement value for the property identified by name */
+    protected String getValueForName(String name) {
+      String value = valueByName.get(name);
+      return value == null ? "" : value;
     }
-    String value = expanded.get(property);
-    return value == null ? "" : value;
   }
 }
