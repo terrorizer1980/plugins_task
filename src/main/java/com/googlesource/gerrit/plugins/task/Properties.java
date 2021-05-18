@@ -37,15 +37,7 @@ public class Properties {
   public Properties(ChangeData changeData, Task definition, Map<String, String> parentProperties)
       throws OrmException {
     Map<String, String> expanded = new HashMap<>(parentProperties);
-    expanded.put("_name", definition.name);
-    Change c = changeData.change();
-    expanded.put("_change_number", String.valueOf(c.getId().get()));
-    expanded.put("_change_id", c.getKey().get());
-    expanded.put("_change_project", c.getProject().get());
-    expanded.put("_change_branch", c.getDest().get());
-    expanded.put("_change_status", c.getStatus().toString());
-    expanded.put("_change_topic", c.getTopic());
-
+    expanded.putAll(getInternalProperties(definition, changeData));
     Map<String, String> unexpanded = definition.properties;
     unexpanded.putAll(definition.exported);
     new RecursiveExpander(expanded).expand(unexpanded);
@@ -60,6 +52,23 @@ public class Properties {
 
   public Properties(NamesFactory namesFactory, Map<String, String> properties) {
     new Expander(properties).expandFieldValues(namesFactory, Sets.newHashSet(TaskConfig.KEY_TYPE));
+  }
+
+  protected static Map<String, String> getInternalProperties(Task definition, ChangeData changeData)
+      throws OrmException {
+    Map<String, String> properties = new HashMap<>();
+
+    properties.put("_name", definition.name);
+
+    Change c = changeData.change();
+    properties.put("_change_number", String.valueOf(c.getId().get()));
+    properties.put("_change_id", c.getKey().get());
+    properties.put("_change_project", c.getProject().get());
+    properties.put("_change_branch", c.getDest().get());
+    properties.put("_change_status", c.getStatus().toString());
+    properties.put("_change_topic", c.getTopic());
+
+    return properties;
   }
 
   /**
