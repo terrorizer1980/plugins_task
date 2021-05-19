@@ -21,27 +21,22 @@ import com.google.gwtorm.server.OrmException;
 import com.googlesource.gerrit.plugins.task.TaskConfig.NamesFactory;
 import com.googlesource.gerrit.plugins.task.TaskConfig.Task;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Use to expand properties like ${_name} for a Task Definition. */
 public class Properties {
-  protected Map<String, String> expanded = new HashMap<>();
-  protected Map<String, String> unexpanded;
-  protected Set<String> expanding;
-  protected Expander recursiveExpander;
-
   public Properties(ChangeData changeData, Task definition, Map<String, String> parentProperties)
       throws OrmException {
-    expanded.putAll(parentProperties);
+    Map<String, String> expanded = new HashMap<>(parentProperties);
     expanded.put("_name", definition.name);
     Change c = changeData.change();
     expanded.put("_change_number", String.valueOf(c.getId().get()));
@@ -51,17 +46,10 @@ public class Properties {
     expanded.put("_change_status", c.getStatus().toString());
     expanded.put("_change_topic", c.getTopic());
 
-    unexpanded = definition.properties;
+    Map<String, String> unexpanded = definition.properties;
     unexpanded.putAll(definition.exported);
-    recursiveExpander =
-        new Expander(expanded) {
-          @Override
-          protected String getValueForName(String name) {
-            expandProperty(name); // recursive call
-            return super.getValueForName(name);
-          }
-        };
-    expandAllUnexpanded();
+    new RecursiveExpander(expanded).expand(unexpanded);
+
     definition.properties = expanded;
     for (String property : definition.exported.keySet()) {
       definition.exported.put(property, expanded.get(property));
@@ -74,31 +62,57 @@ public class Properties {
     new Expander(properties).expandFieldValues(namesFactory, Sets.newHashSet(TaskConfig.KEY_TYPE));
   }
 
-  protected void expandAllUnexpanded() {
-    String property;
-    // A traditional iterator won't work because the recursive expansion may end up
-    // expanding more than one property per iteration behind the iterator's back.
-    while ((property = getFirstUnexpandedProperty()) != null) {
-      expanding = new HashSet<>();
-      expandProperty(property);
-    }
-  }
+  /**
+   * Use to expand properties whose values may contain other references to properties.
+   *
+   * <p>Using a recursive expansion approach makes order of evaluation unimportant as long as there
+   * are no looping definitions.
+   *
+   * <p>Given some property name/value asssociations defined like this:
+   *
+   * <p><code>
+   * valueByName.put("obstacle", "fence");
+   * valueByName.put("action", "jumped over the ${obstacle}");
+   * </code>
+   *
+   * <p>a String like: <code>"The brown fox ${action}."</code>
+   *
+   * <p>will expand to: <code>"The brown fox jumped over the fence."</code>
+   */
+  protected static class RecursiveExpander {
+    protected final Expander expander;
+    protected Map<String, String> unexpandedByName;
+    protected Set<String> expanding;
 
-  protected void expandProperty(String property) {
-    if (!expanding.add(property)) {
-      throw new RuntimeException("Looping property definitions.");
+    public RecursiveExpander(Map<String, String> valueByName) {
+      expander =
+          new Expander(valueByName) {
+            @Override
+            protected String getValueForName(String name) {
+              expandUnexpanded(name); // recursive call
+              return super.getValueForName(name);
+            }
+          };
     }
-    String value = unexpanded.remove(property);
-    if (value != null) {
-      expanded.put(property, recursiveExpander.expandText(value));
-    }
-  }
 
-  protected String getFirstUnexpandedProperty() {
-    try {
-      return unexpanded.keySet().iterator().next();
-    } catch (NoSuchElementException e) {
-      return null;
+    public void expand(Map<String, String> unexpandedByName) {
+      this.unexpandedByName = unexpandedByName;
+
+      // Copy keys to allow out of order removals during iteration
+      for (String unexpanedName : new ArrayList<>(unexpandedByName.keySet())) {
+        expanding = new HashSet<>();
+        expandUnexpanded(unexpanedName);
+      }
+    }
+
+    protected void expandUnexpanded(String name) {
+      if (!expanding.add(name)) {
+        throw new RuntimeException("Looping property definitions.");
+      }
+      String value = unexpandedByName.remove(name);
+      if (value != null) {
+        expander.valueByName.put(name, expander.expandText(value));
+      }
     }
   }
 
@@ -121,7 +135,7 @@ public class Properties {
     // "${_name}" -> group(1) = "_name"
     protected static final Pattern PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
 
-    protected final Map<String, String> valueByName;
+    public final Map<String, String> valueByName;
 
     public Expander(Map<String, String> valueByName) {
       this.valueByName = valueByName;
