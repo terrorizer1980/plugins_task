@@ -166,10 +166,12 @@
 
     _show_all_tap() {
       this._show_all = 'true';
+      this._expand_all = true;
     },
 
     _needs_and_blocked_tap() {
       this._show_all = 'false';
+      this._expand_all = true;
     },
 
     _switch_expand() {
