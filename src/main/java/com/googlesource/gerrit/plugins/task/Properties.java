@@ -34,7 +34,6 @@ import java.util.regex.Pattern;
 
 /** Use to expand properties like ${_name} for a Task Definition. */
 public class Properties {
-  protected Object definition;
   protected Map<String, String> expanded = new HashMap<>();
   protected Map<String, String> unexpanded;
   protected Set<String> expanding;
@@ -68,35 +67,11 @@ public class Properties {
       definition.exported.put(property, expanded.get(property));
     }
 
-    this.definition = definition;
-    expandNonPropertyFields(Collections.emptySet());
+    new Expander(expanded).expandFieldValues(definition, Collections.emptySet());
   }
 
   public Properties(NamesFactory namesFactory, Map<String, String> properties) {
-    expanded.putAll(properties);
-    definition = namesFactory;
-    expandNonPropertyFields(Sets.newHashSet(TaskConfig.KEY_TYPE));
-  }
-
-  protected void expandNonPropertyFields(Set<String> excludedFields) {
-    Expander fieldExpander = new Expander(expanded);
-    for (Field field : definition.getClass().getFields()) {
-      try {
-        if (!excludedFields.contains(field.getName())) {
-          field.setAccessible(true);
-          Object o = field.get(definition);
-          if (o instanceof String) {
-            field.set(definition, fieldExpander.expandText((String) o));
-          } else if (o instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<String> forceCheck = List.class.cast(o);
-            fieldExpander.expandElements(forceCheck);
-          }
-        }
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
-      }
-    }
+    new Expander(properties).expandFieldValues(namesFactory, Sets.newHashSet(TaskConfig.KEY_TYPE));
   }
 
   protected void expandAllUnexpanded() {
@@ -150,6 +125,27 @@ public class Properties {
 
     public Expander(Map<String, String> valueByName) {
       this.valueByName = valueByName;
+    }
+
+    /** Expand all properties in the Strings in the object's Fields (except the exclude ones) */
+    protected void expandFieldValues(Object object, Set<String> excludedFieldNames) {
+      for (Field field : object.getClass().getFields()) {
+        try {
+          if (!excludedFieldNames.contains(field.getName())) {
+            field.setAccessible(true);
+            Object o = field.get(object);
+            if (o instanceof String) {
+              field.set(object, expandText((String) o));
+            } else if (o instanceof List) {
+              @SuppressWarnings("unchecked")
+              List<String> forceCheck = List.class.cast(o);
+              expandElements(forceCheck);
+            }
+          }
+        } catch (IllegalAccessException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
 
     /** Expand all properties in the Strings in the List */
