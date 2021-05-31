@@ -79,7 +79,7 @@ limitations under the License.
   <template>
     <template is="dom-repeat" as="task" items="[[tasks]]">
       <template is="dom-if" if="[[_can_show(show_all, task)]]">
-        <li>
+        <li style="padding: 0.2em;">
           <style>
             /* Matching colors with core code. */
             .green {
@@ -111,9 +111,11 @@ limitations under the License.
           [[task.message]]
         </li>
       </template>
+      <ul style="list-style-type:none; margin: 0 0 0 0; padding: 0 0 0 2em;">
       <gr-task-plugin-tasks
           tasks="[[task.sub_tasks]]"
           show_all$="[[show_all]]"> </gr-task-plugin-tasks>
+      </ul>
     </template>
   </template>
   <script>
