@@ -14,9 +14,9 @@
 
 package com.googlesource.gerrit.plugins.task;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
-import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.index.query.QueryParseException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Branch;
