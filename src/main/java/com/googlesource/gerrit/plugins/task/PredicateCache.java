@@ -31,7 +31,6 @@ public class PredicateCache {
   protected final Map<String, ThrowingProvider<Predicate<ChangeData>, QueryParseException>>
       predicatesByQuery = new HashMap<>();
 
-
   @Inject
   public PredicateCache(CurrentUser user, ChangeQueryBuilder cqb) {
     this.user = user;

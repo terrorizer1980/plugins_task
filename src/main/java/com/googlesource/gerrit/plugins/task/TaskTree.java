@@ -244,7 +244,8 @@ public class TaskTree {
           List<ChangeData> changeDataList =
               changeQueryProcessorProvider
                   .get()
-                  .query(changeQueryBuilderProvider.get().parse(namesFactory.changes)).entities();
+                  .query(changeQueryBuilderProvider.get().parse(namesFactory.changes))
+                  .entities();
           for (ChangeData changeData : changeDataList) {
             addSubDefinition(task.config.createTask(tasksFactory, changeData.getId().toString()));
           }
