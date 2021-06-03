@@ -82,7 +82,7 @@ public class TaskAttributeFactory implements ChangeAttributeFactory {
       for (PatchSetArgument psa : options.patchSetArguments) {
         definitions.masquerade(psa);
       }
-        return createWithExceptions(c);
+      return createWithExceptions(c);
     }
     return null;
   }
