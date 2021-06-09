@@ -56,14 +56,14 @@ limitations under the License.
             <p class="no-margins">All ([[_all_count]]) |&nbsp;
               <span
                   on-click="_needs_and_blocked_tap"
-                  class="links">Needs + Blocked ([[_ready_count]], [[_fail_count]])</span>
+                  class="links">Needs ([[_ready_count]]) + Blocked ([[_fail_count]])</span>
             <p>
           </template>
           <template is="dom-if" if="[[!_is_show_all(_show_all)]]">
             <p class="no-margins"> <span
                   class="links"
                   on-click="_show_all_tap">All ([[_all_count]])</span>
-              &nbsp;| Needs + Blocked ([[_ready_count]], [[_fail_count]])</p>
+              &nbsp;| Needs ([[_ready_count]]) + Blocked ([[_fail_count]])</p>
           </template>
         </div>
         </div>
