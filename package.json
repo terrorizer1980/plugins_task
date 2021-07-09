@@ -4,7 +4,7 @@
   "description": "Task Plugin",
   "dependencies": {
     "@bazel/rollup": "^3.4.0",
-    "@bazel/terser": "^3.4.0"
+    "@bazel/terser": "^3.6.0"
   },
   "devDependencies": {
     "eslint": "^6.6.0",
