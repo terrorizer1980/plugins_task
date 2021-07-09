@@ -23,10 +23,10 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@bazel/rollup@^3.4.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@bazel/rollup/-/rollup-3.5.0.tgz#3de2db08cbc62c3cffbbabaa4517ec250cf6419a"
-  integrity sha512-sFPqbzSbIn6h66uuZdXgK5oitSmEGtnDPfL3TwTS4ZWy75SpYvk9X1TFGlvkralEkVnFfdH15sq80/1t+YgQow==
+"@bazel/rollup@^3.6.0":
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/@bazel/rollup/-/rollup-3.7.0.tgz#6045d44f39ebc213fd2f3672421a35d20d9abf37"
+  integrity sha512-B9Gut5wdANpnQCUwwp9q/UAU5MNhfUpjTyygNUWoRWAQXRFgmSgsC0Gr5RaWHx9bugaiyPQbPDmb3cYTU+4RQQ==
 
 "@bazel/terser@^3.4.0":
   version "3.5.0"
