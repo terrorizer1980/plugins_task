@@ -3,7 +3,7 @@
   "version": "3.2.6-SNAPSHOT",
   "description": "Task Plugin",
   "dependencies": {
-    "@bazel/rollup": "^3.4.0",
+    "@bazel/rollup": "^3.6.0",
     "@bazel/terser": "^3.4.0"
   },
   "devDependencies": {
